@@ -1,5 +1,4 @@
 import os
-from typing import Union
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -12,10 +11,10 @@ from fastapi import FastAPI, APIRouter
 SPARKUI_BACK_HOST = os.getenv("SPARKUI_BACK_HOST")
 SPARKUI_BACK_PORT = int(os.getenv("SPARKUI_BACK_PORT"))
 
-app = FastAPI()
+app = FastAPI(title="SparkUI")
 
-app.include_router(api.v1.stable_diffusion.init(), prefix = "/v1/stable_diffusion", tags = ["txt2img"])
-app.include_router(api.v1.status.init(), prefix = "/v1/status", tags = ["status"])
+app.include_router(api.v1.stable_diffusion.init(), prefix = "/v1/stable_diffusion", tags = ["Stable Diffusion"])
+app.include_router(api.v1.status.init(), prefix = "/v1/status", tags = ["System"])
 
 def init():
 	import uvicorn
