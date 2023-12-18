@@ -1,25 +1,26 @@
-import os
+import asyncio
+from prisma import Prisma
+from prisma.models import Checkpoint, CheckpointVariation
 
-import db
-import api
+async def main() -> None:
+    prisma = Prisma(auto_register=True)
+    await prisma.connect()
 
-from dotenv import load_dotenv
-
-load_dotenv()
-
-SD_ASSET_DIR = os.getenv("SPARKUI_BACK_SD_DIR")
-
-SD_CHECKPOINT_DIR = os.path.join(SD_ASSET_DIR, "checkpoints")
-SD_LORA_DIR = os.path.join(SD_ASSET_DIR, "lora")
-SD_EMBEDDING_DIR = os.path.join(SD_ASSET_DIR, "embedding")
-SD_VAE_DIR = os.path.join(SD_ASSET_DIR, "vae")
-
-def main():
-    for dir in [ SD_CHECKPOINT_DIR,SD_LORA_DIR,SD_EMBEDDING_DIR, SD_VAE_DIR ]:
-        if not os.path.exists(dir): os.makedirs(dir)
+    # write your queries here
+    checkpoint = await Checkpoint.prisma().create(data = {
+        'handle': 'dreamshaper',
+        'name': 'DreamShaper'
+    })
     
-    print("Starting web server...")
-    api.init()
+    checkpointVariation = await CheckpointVariation.prisma().create(data = {
+        'handle': 'v8',
+        'name': 'DreamShaper - V8',
+        'baseModel': 0,
+        'checkpoint_id': checkpoint.id,
+        'file': 'dreamshaper_v8.safetensors'
+    })
 
-if __name__ == "__main__":
-    main()
+    await prisma.disconnect()
+
+if __name__ == '__main__':
+    asyncio.run(main())

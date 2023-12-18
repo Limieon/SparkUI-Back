@@ -1,0 +1,38 @@
+datasource db {
+    provider = "sqlite"
+    url      = "file:db.sqlite"
+}
+
+generator client {
+    provider             = "prisma-client-py"
+    recursive_type_depth = 5
+}
+
+model Checkpoint {
+    id                  Int                   @id @default(autoincrement())
+    handle              String                @unique
+    CheckpointVariation CheckpointVariation[]
+
+    // Metadata
+    name String
+}
+
+model CheckpointVariation {
+    id            Int        @id @default(autoincrement())
+    handle        String     @unique
+    checkpoint    Checkpoint @relation(fields: [checkpoint_id], references: [id])
+    checkpoint_id Int
+
+    // Metadata
+    name      String
+    file      String
+    baseModel Int
+
+    // Usage Info
+    image_width  Int?
+    image_height Int?
+    min_steps    Int?
+    max_steps    Int?
+    clip_skip    Float?
+    sampler      String?
+}
