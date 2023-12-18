@@ -8,31 +8,237 @@ generator client {
     recursive_type_depth = 5
 }
 
+// ---> Checkpoint <--- //
+// ------> Base Data <------ //
 model Checkpoint {
-    id                  Int                   @id @default(autoincrement())
-    handle              String                @unique
-    CheckpointVariation CheckpointVariation[]
+    id     Int    @id @unique @default(autoincrement())
+    handle String @unique
+    name   String
 
-    // Metadata
-    name String
+    GenerationData GenerationData[]
 }
 
 model CheckpointVariation {
-    id            Int        @id @default(autoincrement())
-    handle        String     @unique
-    checkpoint    Checkpoint @relation(fields: [checkpoint_id], references: [id])
-    checkpoint_id Int
+    id     Int    @id @unique @default(autoincrement())
+    handle String @unique
+    name   String
 
-    // Metadata
-    name      String
-    file      String
-    baseModel Int
+    // Foreign Keys
+    baseModelHandle String
 
-    // Usage Info
-    image_width  Int?
-    image_height Int?
-    min_steps    Int?
-    max_steps    Int?
-    clip_skip    Float?
-    sampler      String?
+    // Relations
+    baseModel BaseModel @relation(fields: [baseModelHandle], references: [handle])
+
+    GenerationData GenerationData[]
+}
+
+// ---> Lora <--- //
+model Lora {
+    id     Int    @id @unique @default(autoincrement())
+    handle String @unique
+    name   String
+
+    // Foreign keys
+    baseModelHandle String
+
+    // Relations
+    baseModel BaseModel @relation(fields: [baseModelHandle], references: [handle])
+
+    LoraWeight LoraWeight[]
+}
+
+model LoraVersion {
+    id     Int    @id @unique @default(autoincrement())
+    handle String @unique
+    name   String
+
+    civitAIOriginId Int?
+
+    LoraWeight LoraWeight[]
+    origin     CivitAIOrigin? @relation(fields: [civitAIOriginId], references: [id])
+}
+
+model LoraWeight {
+    id Int @id @unique @default(autoincrement())
+
+    weight Float
+
+    // Foreign keys
+    loraId        Int
+    loraVersionId Int
+
+    GenerationDataId Int?
+
+    // Relations
+    lora           Lora            @relation(fields: [loraId], references: [id])
+    loraVersion    LoraVersion     @relation(fields: [loraVersionId], references: [id])
+    GenerationData GenerationData? @relation(fields: [GenerationDataId], references: [id])
+}
+
+// ---> Embedding <--- //
+model Embedding {
+    id     Int    @id @unique @default(autoincrement())
+    handle String @unique
+    name   String
+
+    // Foreign keys
+    GenerationDataId Int?
+
+    // Relations
+    GenerationData GenerationData? @relation(fields: [GenerationDataId], references: [id])
+}
+
+model EmbeddingVersion {
+    id               Int             @id @unique @default(autoincrement())
+    handle           String          @unique
+    name             String
+    GenerationData   GenerationData? @relation(fields: [GenerationDataId], references: [id])
+    GenerationDataId Int?
+}
+
+// ---> Embedding <--- //
+model VAE {
+    id             Int              @id @unique @default(autoincrement())
+    handle         String           @unique
+    name           String
+    GenerationData GenerationData[]
+}
+
+model VAEVersion {
+    id             Int              @id @unique @default(autoincrement())
+    handle         String           @unique
+    name           String
+    GenerationData GenerationData[]
+}
+
+/// ---> Origins <--- //
+model CivitAIOrigin {
+    id          Int @id @unique @default(autoincrement())
+    baseId      Int
+    variationId Int
+
+    url         String
+    LoraVersion LoraVersion[]
+}
+
+// ------> User Data <------ //
+// ---> Image <--- //
+model Image {
+    id             Int              @id @unique @default(autoincrement())
+    fileName       String
+    GeneratedImage GeneratedImage[]
+    UploadedImage  UploadedImage[]
+
+    // Foreign keys
+    imageGroupId Int?
+
+    // Relations
+    Board ImageGroup? @relation(fields: [imageGroupId], references: [id])
+}
+
+model GeneratedImage {
+    id Int @id @unique @default(autoincrement())
+
+    imageId          Int?
+    generationDataId Int
+
+    image          Image?         @relation(fields: [imageId], references: [id])
+    generationData GenerationData @relation(fields: [generationDataId], references: [id])
+    QueueItem      QueueItem[]
+}
+
+model GenerationData {
+    id Int @id @unique @default(autoincrement())
+
+    // txt2img, img2img, ...
+    generationMethod String
+
+    // Foreign keys
+    checkpointId          Int
+    checkpointVariationId Int
+    vaeID                 Int
+    vaeVersionId          Int
+    embedding             Embedding[]
+    embeddingVersion      EmbeddingVersion[]
+    loras                 LoraWeight[]
+    samplerHandle         String
+    precisionHandle       String
+
+    // Relations
+    checkpoint          Checkpoint          @relation(fields: [checkpointId], references: [id])
+    checkpointVariation CheckpointVariation @relation(fields: [checkpointVariationId], references: [id])
+    vae                 VAE                 @relation(fields: [vaeID], references: [id])
+    vaeVersion          VAEVersion          @relation(fields: [vaeVersionId], references: [id])
+    sampler             Sampler             @relation(fields: [samplerHandle], references: [handle])
+    vaePrecision        Precision           @relation(fields: [precisionHandle], references: [handle])
+
+    generatedImage GeneratedImage[]
+}
+
+model UploadedImage {
+    id Int @id @unique @default(autoincrement())
+
+    imageId Int
+
+    image Image @relation(fields: [imageId], references: [id])
+}
+
+// ---> Boards <--- //
+model ImageGroup {
+    id   Int    @id @unique @default(autoincrement())
+    name String
+
+    images Image[]
+}
+
+// ---> Queue <--- //
+model QueueItem {
+    id Int @id @unique @default(autoincrement())
+
+    status     Int
+    startedAt  DateTime
+    updatedAt  DateTime?
+    finishedAt DateTime?
+
+    // Foreign keys 
+    generatedImage GeneratedImage @relation(fields: [generatedImageId], references: [id])
+
+    // Relations
+    generatedImageId Int
+}
+
+// ------> Utils to store constants <------ //
+model BaseModel {
+    handle String @id @unique
+    name   String
+
+    // Foreign keys
+    colorHandle String
+
+    // Relations
+    color               Color                 @relation(fields: [colorHandle], references: [handle])
+    CheckpointVariation CheckpointVariation[]
+    Lora                Lora[]
+}
+
+model Color {
+    handle String @id @unique
+    name   String
+    hex    Int
+
+    BaseModel BaseModel[]
+}
+
+model Sampler {
+    handle String @id @unique
+    name   String
+    group  String
+
+    GenerationData GenerationData[]
+}
+
+model Precision {
+    handle         String           @id @unique
+    bits           Int
+    GenerationData GenerationData[]
 }
