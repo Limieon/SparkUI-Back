@@ -1,10 +1,8 @@
 from prisma import Prisma
 
 class DB:
-    def __init__(self):
-        self.handle = Prisma()
-
     async def connect(self):
+        self.handle = Prisma(auto_register=True)
         await self.handle.connect()
 
     async def shutdown(self):

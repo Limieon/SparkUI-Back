@@ -5,20 +5,33 @@ from api.v1.schemas import Checkpoint, Sampler, Post_Checkpoint
 
 from stable_diffusion.checkpoint import upload_checkpoint
 
+from main import db
+from prisma.models import Checkpoint
+
 router = APIRouter()
 
 # Checkpoints
 @router.get("/checkpoints", tags=["Checkpoint"])
-def get_checkpoints() -> List[str]: 
-	return []
+async def get_checkpoints() -> List[str]:
+    data = await Checkpoint.prisma().find_many()
+    handles: List[str] = []
+    for d in data: handles.append(d.handle)
+
+    return handles
 
 @router.get("/checkpoints/{checkpoint}", tags=["Checkpoint"])
 def get_checkpoints(checkpoint: str) -> Checkpoint:
     return {}
 
 @router.post("/checkpoints", tags=["Checkpoint"])
-def post_checkpoints(body: Post_Checkpoint):
-    print(body.handle)
+async def post_checkpoints(body: Post_Checkpoint):
+    await Checkpoint.prisma().create(
+        data={
+            "handle": body.handle,
+            "name": body.name
+        }
+    )
+
     return { 'success': True }
 
 @router.put("/checkpoints/{checkpoint}", tags=["Checkpoint"])
