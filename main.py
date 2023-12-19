@@ -16,8 +16,8 @@ async def run_app():
     await server.serve()
 
 async def init():
-    print("Initializing Directories...")
-    for field, value in vars(Config.Directories.StableDiffusion).items():
+    print("Initializing directories...")
+    for field, value in vars(Config.StableDiffusion.Directories).items():
         if field.startswith("__"): continue
         path = os.path.join(".", value)
         if not os.path.exists(path):

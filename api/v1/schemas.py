@@ -1,7 +1,8 @@
-from typing import List, Optional
-
+from fastapi import UploadFile
 from pydantic import BaseModel
-
+from typing import List, Optional
+from enum import Enum
+    
 # Checkpoints
 class CheckpointUsageInfo(BaseModel):
     width: Optional[int]
@@ -28,7 +29,13 @@ class Sampler(BaseModel):
     name: str
     group: str
 
-# Post Bodies
+# Request Bodies
 class Post_Checkpoint(BaseModel):
     handle: str
     name: str
+
+class Put_CheckpointVariation(BaseModel):
+    handle: str
+    name: str
+    file: UploadFile
+    base_model: str
