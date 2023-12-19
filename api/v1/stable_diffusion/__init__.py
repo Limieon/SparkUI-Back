@@ -3,26 +3,85 @@ from typing import Union, Optional, List
 
 from api import app
 
-from api.v1.schemas import Checkpoint
+from api.v1.schemas import Checkpoint, Sampler
+
+from stable_diffusion.checkpoint import upload_checkpoint
 
 router = APIRouter()
 
-# Checkpoint Endpoints
-@router.get("/checkpoints")
+# Checkpoints
+@router.get("/checkpoints", tags=["Checkpoint"])
 def get_checkpoints() -> List[str]: 
 	return []
 
-@router.get("/checkpoints/{checkpoint}")
-def get_checkpoint(checkpoint: str) -> Checkpoint:
+@router.get("/checkpoints/{checkpoint}", tags=["Checkpoint"])
+def get_checkpoints(checkpoint: str) -> Checkpoint:
     return {}
 
-@router.post("/checkpoint")
-def post_checkpoint():
+@router.post("/checkpoints", tags=["Checkpoint"])
+def post_checkpoints():
     return {}
 
-@router.put("/checkpoints/{checkpoint}")
-def put_checkpoint(checkpoint: str):
+@router.put("/checkpoints/{checkpoint}", tags=["Checkpoint"])
+async def put_checkpoints(checkpoint: str, file: UploadFile):
+    await upload_checkpoint(file)
     return {}
+
+# Loras
+@router.get("/loras", tags=["LoRA"])
+def get_loras():
+    return []
+
+@router.get("/loras/{lora}", tags=["LoRA"])
+def get_loras(lora: str):
+    return {}
+
+@router.post("/loras", tags=["LoRA"])
+def post_loras():
+    return {}
+
+@router.put("/loras/{lora}", tags=["LoRA"])
+def put_loras(lora: str):
+    return {}
+
+# Embeddings
+@router.get("/embeddings", tags=["Embedding"])
+def get_embeddings():
+    return []
+
+@router.get("/embeddings/{embedding}", tags=["Embedding"])
+def get_embeddings(embedding: str):
+    return {}
+
+@router.post("/embeddings", tags=["Embedding"])
+def post_embeddings():
+    return {}
+
+@router.put("/embeddings/{embedding}", tags=["Embedding"])
+def put_embeddings(embedding: str):
+    return {}
+
+# VAEs
+@router.get("/vaes", tags=["VAE"])
+def get_vaes():
+    return []
+
+@router.get("/vaes/{vae}", tags=["VAE"])
+def get_vaes(vae: str):
+    return {}
+
+@router.post("/vaes", tags=["VAE"])
+def post_vaes():
+    return {}
+
+@router.put("/vaes/{vae}", tags=["VAE"])
+def put_vaes(vae: str):
+    return {}
+
+# Samplers
+@router.get("/samplers", tags=["Sampler"])
+def get_samplers() -> List[Sampler]:
+    return []
 
 def init():
     return router

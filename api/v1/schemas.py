@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
+# Checkpoints
 class CheckpointUsageInfo(BaseModel):
     width: Optional[int]
     height: Optional[int]
@@ -20,3 +21,9 @@ class Checkpoint(BaseModel):
     hanlde: str
     name: str
     variations: List[CheckpointVariation]
+
+# Samplers
+class Sampler(BaseModel):
+    handle: str
+    name: str
+    group: str
