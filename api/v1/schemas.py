@@ -27,3 +27,8 @@ class Sampler(BaseModel):
     handle: str
     name: str
     group: str
+
+# Post Bodies
+class Post_Checkpoint(BaseModel):
+    handle: str
+    name: str

@@ -1,9 +1,7 @@
 from fastapi import APIRouter, UploadFile
 from typing import Union, Optional, List
 
-from api import app
-
-from api.v1.schemas import Checkpoint, Sampler
+from api.v1.schemas import Checkpoint, Sampler, Post_Checkpoint
 
 from stable_diffusion.checkpoint import upload_checkpoint
 
@@ -19,12 +17,12 @@ def get_checkpoints(checkpoint: str) -> Checkpoint:
     return {}
 
 @router.post("/checkpoints", tags=["Checkpoint"])
-def post_checkpoints():
-    return {}
+def post_checkpoints(body: Post_Checkpoint):
+    print(body.handle)
+    return { 'success': True }
 
 @router.put("/checkpoints/{checkpoint}", tags=["Checkpoint"])
 async def put_checkpoints(checkpoint: str, file: UploadFile):
-    await upload_checkpoint(file)
     return {}
 
 # Loras
