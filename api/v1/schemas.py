@@ -34,8 +34,7 @@ class Post_Checkpoint(BaseModel):
     handle: str
     name: str
 
-class Put_CheckpointVariation(BaseModel):
+class Post_CheckpointVariation(BaseModel):
     handle: str
     name: str
-    file: UploadFile
     base_model: str

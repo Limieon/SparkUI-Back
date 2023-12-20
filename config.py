@@ -10,6 +10,16 @@ class SD_BaseVersion:
     name: str
     short: str
 
+class SD_Sampler:
+    def __init__(self, handle: str, group: str, name: str):
+        self.handle = handle
+        self.group = group
+        self.name = name
+
+    handle: str
+    group: str
+    name: str
+
 class SparkUIConfig:
     class API:
         HOST = "0.0.0.0"                                # The host to bind the API server on
@@ -25,7 +35,12 @@ class SparkUIConfig:
             IMAGES_OUT = "assets/out/images"            # The image out dir
         
         class BaseModels:
-            SD1_5: SD_BaseVersion("sd1_5", "StableDiffusion 1.5", "SD1.5")
-            SD2_1: SD_BaseVersion("sd2_1", "StableDiffusion 2.1", "SD2.1")
-            SDXL1: SD_BaseVersion("sdxl", "StableDiffusionXL", "SDXL")
-            SDXLT: SD_BaseVersion("sdxlt", "StableDiffusionXL - Turbo", "SDXL-T")
+            SD1_5 = SD_BaseVersion("sd1_5", "StableDiffusion 1.5", "SD1.5")
+            SD2_1 = SD_BaseVersion("sd2_1", "StableDiffusion 2.1", "SD2.1")
+            SDXL1 = SD_BaseVersion("sdxl", "StableDiffusionXL", "SDXL")
+            SDXLT = SD_BaseVersion("sdxlt", "StableDiffusionXL - Turbo", "SDXL-T")
+
+        class Samplers:                                 # More samplers will be added in the future and the samplers will be stored somewhere else
+            EULER_A = SD_Sampler("euler_a", "Euler", "Euler Ancestral")
+            DPMPP_2M = SD_Sampler("dpmpp_2m", "DPM++", "DPM++ 2M")
+            DPMPP_2M_KARRAS = SD_Sampler("dpmpp_2m_karras", "DPM++", "DPM++ 2M Karras")

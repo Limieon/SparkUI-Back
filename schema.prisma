@@ -11,23 +11,25 @@ generator client {
 // ---> Checkpoint <--- //
 // ------> Base Data <------ //
 model Checkpoint {
-    id     Int    @id @unique @default(autoincrement())
-    handle String @unique
+    handle String @id @unique
     name   String
 
-    GenerationData GenerationData[]
+    GenerationData      GenerationData[]
+    CheckpointVariation CheckpointVariation[]
 }
 
 model CheckpointVariation {
-    id     Int    @id @unique @default(autoincrement())
-    handle String @unique
-    name   String
+    id        Int     @id @unique @default(autoincrement())
+    handle    String  @unique
+    name      String
+    baseModel String
+    file      String?
 
-    // Foreign Keys
-    baseModelHandle String
+    // Foreign keys
+    checkpointHandle String
 
     // Relations
-    baseModel BaseModel @relation(fields: [baseModelHandle], references: [handle])
+    checkpoint Checkpoint @relation(fields: [checkpointHandle], references: [handle])
 
     GenerationData GenerationData[]
 }
@@ -38,20 +40,16 @@ model Lora {
     handle String @unique
     name   String
 
-    // Foreign keys
-    baseModelHandle String
-
-    // Relations
-    baseModel BaseModel @relation(fields: [baseModelHandle], references: [handle])
-
     LoraWeight LoraWeight[]
 }
 
 model LoraVersion {
-    id     Int    @id @unique @default(autoincrement())
-    handle String @unique
-    name   String
+    id        Int    @id @unique @default(autoincrement())
+    handle    String @unique
+    name      String
+    baseModel String
 
+    // Foreign Keys
     civitAIOriginId Int?
 
     LoraWeight LoraWeight[]
@@ -154,23 +152,21 @@ model GenerationData {
     generationMethod String
 
     // Foreign keys
-    checkpointId          Int
+    checkpointHandle      String
     checkpointVariationId Int
     vaeID                 Int
     vaeVersionId          Int
     embedding             Embedding[]
     embeddingVersion      EmbeddingVersion[]
     loras                 LoraWeight[]
-    samplerHandle         String
-    precisionHandle       String
+    sampler               String
+    precision             String
 
     // Relations
-    checkpoint          Checkpoint          @relation(fields: [checkpointId], references: [id])
+    checkpoint          Checkpoint          @relation(fields: [checkpointHandle], references: [handle])
     checkpointVariation CheckpointVariation @relation(fields: [checkpointVariationId], references: [id])
     vae                 VAE                 @relation(fields: [vaeID], references: [id])
     vaeVersion          VAEVersion          @relation(fields: [vaeVersionId], references: [id])
-    sampler             Sampler             @relation(fields: [samplerHandle], references: [handle])
-    vaePrecision        Precision           @relation(fields: [precisionHandle], references: [handle])
 
     generatedImage GeneratedImage[]
 }
@@ -205,40 +201,4 @@ model QueueItem {
 
     // Relations
     generatedImageId Int
-}
-
-// ------> Utils to store constants <------ //
-model BaseModel {
-    handle String @id @unique
-    name   String
-
-    // Foreign keys
-    colorHandle String
-
-    // Relations
-    color               Color                 @relation(fields: [colorHandle], references: [handle])
-    CheckpointVariation CheckpointVariation[]
-    Lora                Lora[]
-}
-
-model Color {
-    handle String @id @unique
-    name   String
-    hex    Int
-
-    BaseModel BaseModel[]
-}
-
-model Sampler {
-    handle String @id @unique
-    name   String
-    group  String
-
-    GenerationData GenerationData[]
-}
-
-model Precision {
-    handle         String           @id @unique
-    bits           Int
-    GenerationData GenerationData[]
 }

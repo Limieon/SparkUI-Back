@@ -1,12 +1,17 @@
 from fastapi import APIRouter, UploadFile
+from fastapi.exceptions import HTTPException
+
 from typing import Union, Optional, List
 
-from api.v1.schemas import Checkpoint, Sampler, Post_Checkpoint
+from api.v1.schemas import Checkpoint, Sampler, Post_Checkpoint, Post_CheckpointVariation
+
+from config import SparkUIConfig as Config
 
 from stable_diffusion.checkpoint import upload_checkpoint
 
 from main import db
-from prisma.models import Checkpoint
+from prisma.models import Checkpoint, CheckpointVariation
+from prisma.errors import UniqueViolationError
 
 router = APIRouter()
 
@@ -25,18 +30,83 @@ def get_checkpoints(checkpoint: str) -> Checkpoint:
 
 @router.post("/checkpoints", tags=["Checkpoint"])
 async def post_checkpoints(body: Post_Checkpoint):
-    await Checkpoint.prisma().create(
-        data={
-            "handle": body.handle,
-            "name": body.name
-        }
-    )
+    try:
+        await Checkpoint.prisma().create(
+            data={
+                "handle": body.handle,
+                "name": body.name
+            }
+        )
+    except:
+        raise HTTPException(400, f"Handle '{body.handle}' is already in use!")
 
     return { 'success': True }
 
-@router.put("/checkpoints/{checkpoint}", tags=["Checkpoint"])
-async def put_checkpoints(checkpoint: str, file: UploadFile):
-    return {}
+@router.post("/checkpoints/{checkpoint}", tags=["Checkpoint"])
+async def post_checkpoints(checkpoint: str, body: Post_CheckpointVariation):
+    base_found = False
+
+    for k, v in vars(Config.StableDiffusion.BaseModels).items():
+        if k.startswith("__"): continue
+        if v.handle == body.base_model:
+            base_found = True
+            break
+    
+    if not base_found:
+        raise HTTPException(400, f"Base model '{body.base_model}' is not valid!")
+    
+    db_checkpoint = await Checkpoint.prisma().find_first(
+        where = {
+            "handle": { "equals": checkpoint }
+        }
+    )
+
+    if db_checkpoint is None:
+        raise HTTPException(400, f"Checkpoint group '{checkpoint}' not found!")
+
+    try:
+        await CheckpointVariation.prisma().create(
+            data = {
+                "handle": body.handle,
+                "name": body.name,
+                "checkpointHandle": body.handle,
+                "baseModel": body.base_model
+            }
+        )
+
+    except UniqueViolationError:
+        raise HTTPException(400, f"Handle '{body.handle}' is already in use!")  
+
+
+    return { 'success': True }
+
+@router.put("/checkpoints/{checkpoint}/{variation}", tags=["Checkpoint"])
+async def put_checkpoints(checkpoint: str, variation: str, file: UploadFile):
+    db_variation = await CheckpointVariation.prisma().find_first(
+        where = {
+            "AND": [
+                { "handle": { "equals": variation } },
+                { "checkpointHandle": { "equals": checkpoint } }
+            ]
+        } 
+    )
+
+    if db_variation is None:
+        raise HTTPException(400, f"Checkpoint variation '{variation}' not found in group '{checkpoint}'!")
+
+    await db_variation.prisma().update(
+        data = {
+            "file": file.filename
+        },
+        where={
+            "handle": variation,
+            "checkpointHandle": checkpoint
+        }
+    )
+
+    await upload_checkpoint(file)
+
+    return { 'success': True }
 
 # Loras
 @router.get("/loras", tags=["LoRA"])
