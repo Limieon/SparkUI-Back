@@ -42,9 +42,9 @@ async def get_checkpoints(checkpoint: str) -> S_Checkpoint:
             usage_info = S_CheckpointUsageInfo(
                 width = None,
                 height = None,
-                clipSkip = 1,
-                minSteps = None,
-                maxSteps = None,
+                clip_skip = 1,
+                min_steps = None,
+                max_steps = None,
                 sampler = None
             )
         ))

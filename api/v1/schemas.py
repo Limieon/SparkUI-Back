@@ -7,9 +7,9 @@ from enum import Enum
 class CheckpointUsageInfo(BaseModel):
     width: Optional[int]
     height: Optional[int]
-    clipSkip: float
-    minSteps: Optional[int]
-    maxSteps: Optional[int]
+    clip_skip: float
+    min_steps: Optional[int]
+    max_steps: Optional[int]
     sampler: Optional[str]
 
 class CheckpointVariation(BaseModel):
