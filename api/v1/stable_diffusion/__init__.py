@@ -3,7 +3,7 @@ from fastapi.exceptions import HTTPException
 
 from typing import Union, Optional, List
 
-from api.v1.schemas import Checkpoint, Sampler, Post_Checkpoint, Post_CheckpointVariation
+from api.v1.schemas import Checkpoint as S_Checkpoint, CheckpointVariation as S_CheckpointVariation, CheckpointUsageInfo as S_CheckpointUsageInfo, Sampler, Post_Checkpoint, Post_CheckpointVariation
 
 from config import SparkUIConfig as Config
 
@@ -25,8 +25,34 @@ async def get_checkpoints() -> List[str]:
     return handles
 
 @router.get("/checkpoints/{checkpoint}", tags=["Checkpoint"])
-def get_checkpoints(checkpoint: str) -> Checkpoint:
-    return {}
+async def get_checkpoints(checkpoint: str) -> S_Checkpoint:
+    db_checkpoint = await Checkpoint.prisma().find_first(where={
+        "handle": checkpoint
+    })
+
+    variations: list[S_CheckpointVariation] = []
+    for d in await CheckpointVariation.prisma().find_many(where = {
+        "checkpointHandle": checkpoint
+    }):
+        variations.append(S_CheckpointVariation(
+            handle = d.handle,
+            name = d.name,
+            preview_url = d.previewUrl,
+            base_model = d.baseModel,
+            usage_info = S_CheckpointUsageInfo(
+                width = None,
+                height = None,
+                clipSkip = 1,
+                minSteps = None,
+                maxSteps = None,
+                sampler = None
+            )
+        ))
+
+    return S_Checkpoint(
+        name = db_checkpoint.name,
+        variations=variations
+    )
 
 @router.post("/checkpoints", tags=["Checkpoint"])
 async def post_checkpoints(body: Post_Checkpoint):
@@ -69,8 +95,9 @@ async def post_checkpoints(checkpoint: str, body: Post_CheckpointVariation):
             data = {
                 "handle": body.handle,
                 "name": body.name,
-                "checkpointHandle": body.handle,
-                "baseModel": body.base_model
+                "checkpointHandle": checkpoint,
+                "baseModel": body.base_model,
+                "previewUrl": body.preview_url
             }
         )
 

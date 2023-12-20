@@ -19,7 +19,6 @@ class CheckpointVariation(BaseModel):
     usage_info: CheckpointUsageInfo
     
 class Checkpoint(BaseModel):
-    hanlde: str
     name: str
     variations: List[CheckpointVariation]
 
@@ -38,3 +37,4 @@ class Post_CheckpointVariation(BaseModel):
     handle: str
     name: str
     base_model: str
+    preview_url: str

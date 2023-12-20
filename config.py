@@ -23,7 +23,7 @@ class SD_Sampler:
 class SparkUIConfig:
     class API:
         HOST = "0.0.0.0"                                # The host to bind the API server on
-        PORT = 1910                                     # The port to expose the API server to
+        PORT = 1911                                     # The port to expose the API server to
 
     class StableDiffusion:
         class Directories:

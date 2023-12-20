@@ -19,11 +19,12 @@ model Checkpoint {
 }
 
 model CheckpointVariation {
-    id        Int     @id @unique @default(autoincrement())
-    handle    String  @unique
-    name      String
-    baseModel String
-    file      String?
+    id         Int     @id @unique @default(autoincrement())
+    handle     String  @unique
+    name       String
+    baseModel  String
+    file       String?
+    previewUrl String
 
     // Foreign keys
     checkpointHandle String
