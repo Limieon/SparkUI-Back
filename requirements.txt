@@ -1,0 +1,4 @@
+uvicorn[default]
+fastapi
+python-multipart
+prisma

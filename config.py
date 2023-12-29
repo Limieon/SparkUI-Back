@@ -1,5 +1,4 @@
 # SparkUI Backend Configuration
-
 class SD_BaseVersion:
     def __init__(self, handle: str, name: str, short: str):
         self.handle = handle
