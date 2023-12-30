@@ -3,15 +3,15 @@ from fastapi.exceptions import HTTPException
 
 from typing import Union, Optional, List
 
-from api.v1.schemas import Checkpoint as S_Checkpoint, CheckpointVariation as S_CheckpointVariation, CheckpointUsageInfo as S_CheckpointUsageInfo, Sampler, Post_Checkpoint, Post_CheckpointVariation
-
-from config import SparkUIConfig as Config
-
-from stable_diffusion.checkpoint import upload_checkpoint
-
 from main import db
 from prisma.models import Checkpoint, CheckpointVariation
 from prisma.errors import UniqueViolationError
+
+from config import SparkUIConfig as Config
+from stable_diffusion.checkpoint import upload_checkpoint
+from api.v1.schemas import Checkpoint as S_Checkpoint, CheckpointVariation as S_CheckpointVariation, CheckpointUsageInfo as S_CheckpointUsageInfo, Sampler, Post_Checkpoint, Post_CheckpointVariation
+
+import civitai.importer
 
 router = APIRouter()
 
@@ -190,6 +190,16 @@ def put_vaes(vae: str):
 @router.get("/samplers", tags=["Sampler"])
 def get_samplers() -> List[Sampler]:
     return []
+
+# CivitAI
+@router.post("/civitai/import/{modelid}", tags=["CivitAI"])
+async def post_civitai_import(modelid: int, versionIDs: List[int]):
+    try:
+        await civitai.importer.import_models(modelid, versionIDs)
+    except:
+        raise
+
+    return { 'success': True }
 
 def init():
     return router

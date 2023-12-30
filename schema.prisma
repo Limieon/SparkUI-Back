@@ -14,6 +14,11 @@ model Checkpoint {
     handle String @id @unique
     name   String
 
+    created_at   DateTime
+    last_updated DateTime
+
+    civitai_id Int?
+
     GenerationData      GenerationData[]
     CheckpointVariation CheckpointVariation[]
 }
@@ -25,6 +30,10 @@ model CheckpointVariation {
     baseModel  String
     file       String?
     previewUrl String
+
+    created_at DateTime
+
+    civitai_id Int?
 
     // Foreign keys
     checkpointHandle String
