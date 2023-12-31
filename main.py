@@ -1,7 +1,10 @@
 import os
 import asyncio
 
-from fastapi import FastAPI
+import ws
+
+import websockets.server
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import SparkUIConfig as Config
@@ -10,6 +13,17 @@ from db import DB
 
 app = FastAPI(title="SparkUI")
 db = DB()
+
+
+@app.websocket("/")
+async def socket(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await websocket.send_text(f"Message text was: {data}")
+    except WebSocketDisconnect:
+        pass
 
 
 async def run_app():
@@ -51,6 +65,11 @@ async def init():
     )
 
 
+async def init_socket():
+    print("Initializing socket...")
+    websockets.server.serve(ws.on, Config.API.HOST, Config.API.PORT)
+
+
 async def shutdown():
     print("Shutting down database...")
     await db.shutdown()
@@ -62,6 +81,7 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     try:
         loop.run_until_complete(init())
+        # loop.run_until_complete(init_socket())
         loop.run_until_complete(run_app())
     finally:
         loop.run_until_complete(shutdown())
