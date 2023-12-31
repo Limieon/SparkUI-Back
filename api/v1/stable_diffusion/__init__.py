@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter, UploadFile
 from fastapi.exceptions import HTTPException
 
@@ -147,9 +149,12 @@ async def put_checkpoints(checkpoint: str, variation: str, file: UploadFile):
 
 @router.delete("/checkpoints/{checkpoint}/{variation}", tags=["Checkpoint"])
 async def delete_checkpoint_variation(checkpoint: str, variation: str):
-    await CheckpointVariation.prisma().delete(
+    data = await CheckpointVariation.prisma().delete(
         where={"handle": variation, "checkpointHandle": checkpoint}
     )
+
+    print(data.file)
+    os.remove(data.file)
 
     return {"success": True}
 
