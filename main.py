@@ -1,7 +1,7 @@
 import os
 import asyncio
 
-import ws
+import api.socket
 
 import websockets.server
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -16,14 +16,8 @@ db = DB()
 
 
 @app.websocket("/")
-async def socket(websocket: WebSocket):
-    await websocket.accept()
-    try:
-        while True:
-            data = await websocket.receive_text()
-            await websocket.send_text(f"Message text was: {data}")
-    except WebSocketDisconnect:
-        pass
+async def socket(ws: WebSocket):
+    await api.socket.on_connect(ws)
 
 
 async def run_app():
