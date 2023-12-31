@@ -44,7 +44,7 @@ async def get_checkpoints(checkpoint: str) -> S_Checkpoint:
     ):
         variations.append(
             S_CheckpointVariation(
-                handle=d.handle,
+                handle=f"{checkpoint}/{d.handle}",
                 name=d.name,
                 preview_url=d.previewUrl,
                 base_model=d.baseModel,
@@ -141,6 +141,15 @@ async def put_checkpoints(checkpoint: str, variation: str, file: UploadFile):
     )
 
     await upload_checkpoint(file)
+
+    return {"success": True}
+
+
+@router.delete("/checkpoints/{checkpoint}/{variation}", tags=["Checkpoint"])
+async def delete_checkpoint_variation(checkpoint: str, variation: str):
+    await CheckpointVariation.prisma().delete(
+        where={"handle": variation, "checkpointHandle": checkpoint}
+    )
 
     return {"success": True}
 
