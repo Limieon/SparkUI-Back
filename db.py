@@ -1,6 +1,7 @@
 from prisma import Prisma
 from prisma.models import BaseModel
 
+
 class DB:
     async def connect(self):
         self.handle = Prisma(auto_register=True)
