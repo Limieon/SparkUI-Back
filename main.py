@@ -1,9 +1,10 @@
 import os
 import asyncio
+import time
+import threading
 
 import api.socket
 
-import websockets.server
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -14,18 +15,29 @@ from db import DB
 app = FastAPI(title="SparkUI")
 db = DB()
 
+queue_stepper_stop = False
+
 
 @app.websocket("/")
 async def socket(ws: WebSocket):
     await api.socket.on_connect(ws)
 
 
-async def run_app():
+async def run_webserver():
     import uvicorn
 
     uvicorn_config = uvicorn.Config(app, host=Config.API.HOST, port=Config.API.PORT)
     server = uvicorn.Server(uvicorn_config)
     await server.serve()
+
+
+def run_queue_stepper():
+    async def run():
+        while not queue_stepper_stop:
+            await asyncio.sleep(1)
+            print("Queue Step!")
+
+    asyncio.run(run())
 
 
 async def init():
@@ -59,11 +71,6 @@ async def init():
     )
 
 
-async def init_socket():
-    print("Initializing socket...")
-    websockets.server.serve(ws.on, Config.API.HOST, Config.API.PORT)
-
-
 async def shutdown():
     print("Shutting down database...")
     await db.shutdown()
@@ -73,10 +80,11 @@ async def shutdown():
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
-    try:
-        loop.run_until_complete(init())
-        # loop.run_until_complete(init_socket())
-        loop.run_until_complete(run_app())
-    finally:
-        loop.run_until_complete(shutdown())
-        loop.close()
+    thread = threading.Thread(target=run_queue_stepper)
+    thread.start()
+
+    loop.run_until_complete(init())
+    loop.run_until_complete(run_webserver())
+    loop.run_until_complete(shutdown())
+    queue_stepper_stop = True
+    thread.join()

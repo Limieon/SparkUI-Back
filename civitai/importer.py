@@ -16,6 +16,18 @@ from config import SparkUIConfig as Config
 CIVITAI_BASE_URL = "https://civitai.com/api/v1"
 
 
+class ImportRequest:
+    def __init__(self, baseid: int, ids: List[int]):
+        self.baseid = baseid
+        self.ids = ids
+
+    baseid: int
+    ids: List[int]
+
+
+importQueue: list[ImportRequest] = []
+
+
 async def import_models(baseid: int, ids: List[int]):
     """Downloads models from CivitAI and pets them into the database
 
@@ -26,6 +38,8 @@ async def import_models(baseid: int, ids: List[int]):
     Raises:
         HTTPException: Gets thrown when an error occurs
     """
+
+    print(f"Importing {baseid} - {ids}")
 
     base = requests.get(f"{CIVITAI_BASE_URL}/models/{baseid}")
     if base.status_code != 200:
@@ -40,7 +54,13 @@ async def import_models(baseid: int, ids: List[int]):
 
     if not (await Checkpoint.prisma().find_first(where={"handle": base_data_handle})):
         await Checkpoint.prisma().create(
-            {"handle": base_data_handle, "name": base_data_name, "civitai_id": baseid, "created_at": datetime.now(), "last_updated": datetime.now()}
+            {
+                "handle": base_data_handle,
+                "name": base_data_name,
+                "civitai_id": baseid,
+                "created_at": datetime.now(),
+                "last_updated": datetime.now(),
+            }
         )
 
     for id in ids:
@@ -61,11 +81,10 @@ async def import_models(baseid: int, ids: List[int]):
                     "previewUrl": variation_data["images"][0]["url"],
                     "civitai_id": id,
                     "checkpointHandle": base_data_handle,
-                    "created_at": datetime.now()
+                    "created_at": datetime.now(),
                 }
             )
-    
+
     await Checkpoint.prisma().update(
-            where = { "handle": base_data_handle },
-            data= {"last_updated": datetime.now()}
-        )
+        where={"handle": base_data_handle}, data={"last_updated": datetime.now()}
+    )
