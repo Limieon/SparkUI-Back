@@ -1,6 +1,5 @@
 import os
 import asyncio
-import time
 import threading
 
 import api.socket
@@ -11,6 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from config import SparkUIConfig as Config
 
 from db import DB
+
+from civitai.importer import importer_queue_step
 
 app = FastAPI(title="SparkUI")
 db = DB()
@@ -35,7 +36,7 @@ def run_queue_stepper():
     async def run():
         while not queue_stepper_stop:
             await asyncio.sleep(1)
-            print("Queue Step!")
+            await importer_queue_step()
 
     asyncio.run(run())
 

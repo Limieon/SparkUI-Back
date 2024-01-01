@@ -20,7 +20,7 @@ from api.v1.schemas import (
     Post_CheckpointVariation,
 )
 
-from api.socket import broadcast
+from api.socket import sockets_broadcast
 
 import civitai.importer
 
@@ -164,7 +164,7 @@ async def delete_checkpoint_variation(checkpoint: str, variation: str):
 # Loras
 @router.get("/loras", tags=["LoRA"])
 async def get_loras():
-    await broadcast("lol")
+    await sockets_broadcast("lol")
     return []
 
 
