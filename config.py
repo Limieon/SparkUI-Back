@@ -49,3 +49,5 @@ class SparkUIConfig:
             EULER_A = SD_Sampler("euler_a", "Euler", "Euler Ancestral")
             DPMPP_2M = SD_Sampler("dpmpp_2m", "DPM++", "DPM++ 2M")
             DPMPP_2M_KARRAS = SD_Sampler("dpmpp_2m_karras", "DPM++", "DPM++ 2M Karras")
+
+        MAX_LOADED_CHECKPOINTS = 1

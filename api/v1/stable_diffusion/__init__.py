@@ -10,7 +10,7 @@ from prisma.models import Checkpoint, CheckpointVariation
 from prisma.errors import UniqueViolationError
 
 from config import SparkUIConfig as Config
-from stable_diffusion.checkpoint import upload_checkpoint
+from sd.checkpoint import upload_checkpoint
 from api.v1.schemas import (
     Checkpoint as S_Checkpoint,
     CheckpointVariation as S_CheckpointVariation,
@@ -246,9 +246,9 @@ async def post_civitai_import(modelid: int, versionIDs: List[int]):
 # Image Generation
 @router.post("/txt2img", tags=["Image Generation"])
 async def generate_txt2img(data: Txt2Img_GenerationRequest):
-    import stable_diffusion.txt2img
+    import sd.txt2img
 
-    res = await stable_diffusion.txt2img.generate(data)
+    res = await sd.txt2img.queue_txt2img(data)
 
     return res
 
