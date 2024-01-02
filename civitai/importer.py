@@ -122,7 +122,6 @@ async def download_file(data: ImportRequest, dir: str, local_filename: str = Non
                     # bar.update(chunk_size)
                     current = current + chunk_size
 
-                    print(current - last_sent)
                     if (current - last_sent) >= 5242880:  # 5242880 = 5MB
                         last_sent = current
                         socket_data = {

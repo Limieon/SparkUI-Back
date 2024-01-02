@@ -65,6 +65,7 @@ async def init():
     )
 
     print("Initializing routes...")
+
     app.include_router(
         api.v1.stable_diffusion.init(),
         prefix="/v1/stable_diffusion",
