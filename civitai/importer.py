@@ -113,16 +113,18 @@ async def download_file(data: ImportRequest, dir: str, local_filename: str = Non
             unit_scale=True,
             unit_divisor=1024,
         ) as bar:
+            last_sent = -999999999
             for chunk in response.iter_content(chunk_size=1024 * 1024):
-                last_sent = 0
                 if chunk:
                     file.write(chunk)
                     chunk_size = len(chunk)
 
-                    bar.update(chunk_size)
+                    # bar.update(chunk_size)
                     current = current + chunk_size
 
-                    if (current - last_sent) > 10_000_000:
+                    print(current - last_sent)
+                    if (current - last_sent) >= 5242880:  # 5242880 = 5MB
+                        last_sent = current
                         socket_data = {
                             "current": current,
                             "size": total_size,
@@ -144,7 +146,6 @@ async def download_file(data: ImportRequest, dir: str, local_filename: str = Non
                         await sockets_broadcast(
                             SocketMessageID.civitai_importer_update, socket_data
                         )
-                        last_sent = current
 
     return path.join(dir, filename)
 
@@ -172,3 +173,4 @@ async def importer_queue_step():
         return
 
     await import_model(importer_queue.pop())
+    await sockets_broadcast(SocketMessageID.civitai_importer_update, {})

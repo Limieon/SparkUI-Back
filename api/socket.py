@@ -12,7 +12,7 @@ sockets = []
 
 
 class SocketMessageID:
-    civitai_importer_update: "civitai_importer_update"
+    civitai_importer_update = "civitai_importer_update"
 
 
 async def sockets_broadcast(id: str, data: str):
