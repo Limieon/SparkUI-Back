@@ -13,6 +13,7 @@ sockets = []
 
 class SocketMessageID:
     civitai_importer_update = "civitai_importer_update"
+    on_image_generated = "on_image_generated"
 
 
 async def sockets_broadcast(id: str, data: str):

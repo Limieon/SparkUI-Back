@@ -51,6 +51,7 @@ async def init():
             os.makedirs(path)
 
     import api.v1.stable_diffusion
+    import api.v1.image
 
     print("Initializing database...")
     await db.connect()
@@ -70,6 +71,11 @@ async def init():
         api.v1.stable_diffusion.init(),
         prefix="/v1/stable_diffusion",
         tags=["StableDiffusion"],
+    )
+    app.include_router(
+        api.v1.image.init(),
+        prefix="/v1/image",
+        tags=["Image"],
     )
 
 

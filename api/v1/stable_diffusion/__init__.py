@@ -249,7 +249,6 @@ async def generate_txt2img(data: Txt2Img_GenerationRequest):
     import sd.txt2img
 
     res = await sd.txt2img.queue_txt2img(data)
-
     return res
 
 

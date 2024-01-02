@@ -19,5 +19,8 @@ async def request_checkpoint(path: str, precision: str) -> StableDiffusionPipeli
     dtype = torch.float32 if precision == "fp32" else torch.float16
 
     return StableDiffusionPipeline.from_single_file(
-        path, use_safetensors=True, torch_dtype=dtype
+        path,
+        use_safetensors=True,
+        torch_dtype=dtype,
+        safety_checker=None,
     ).to("cuda")

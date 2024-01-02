@@ -6,3 +6,4 @@ requests
 tqdm
 omegaconf
 transformers
+iofiles

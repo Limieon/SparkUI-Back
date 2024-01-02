@@ -1,3 +1,8 @@
+import os
+from os import path
+
+import uuid
+
 import torch
 from torch import nn
 from torchvision import transforms
@@ -16,7 +21,18 @@ from sd.checkpoint_manager import request_checkpoint
 from api.v1.schemas import (
     Txt2Img_GenerationRequest,
 )
-from prisma.models import CheckpointVariation
+from prisma.models import (
+    CheckpointVariation,
+    Image,
+    ImageGroup,
+    GeneratedImage,
+    GenerationData,
+)
+
+from config import SparkUIConfig as Config
+
+
+from api.socket import sockets_broadcast, SocketMessageID
 
 
 async def queue_txt2img(data: Txt2Img_GenerationRequest):
@@ -47,10 +63,33 @@ async def generate_txt2img(data: Txt2Img_GenerationRequest):
 
     image = pipeline(
         data.prompt,
+        negative_prompt=data.negativePrompt,
         generator=generator,
         num_inference_steps=data.steps,
         width=data.outputWidth,
         height=data.outputHeight,
+        clip_skip=2,
+        guidance_scale=data.cfgScale,
     ).images[0]
 
-    image.save("image.png")
+    filename = path.join(
+        Config.StableDiffusion.Directories.IMAGES_OUT, f"{uuid.uuid4()}.png"
+    )
+    image.save(filename)
+
+    if not (await ImageGroup.prisma().find_first(where={"id": 1})):
+        await ImageGroup.prisma().create({"name": "Default Image Group"})
+
+    await sockets_broadcast(
+        SocketMessageID.on_image_generated,
+        {
+            "id": (
+                await Image.prisma().create(
+                    data={
+                        "fileName": filename,
+                        "imageGroupId": 1,
+                    }
+                )
+            ).id
+        },
+    )
