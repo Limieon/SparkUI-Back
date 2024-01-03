@@ -50,4 +50,4 @@ class SparkUIConfig:
             DPMPP_2M = SD_Sampler("dpmpp_2m", "DPM++", "DPM++ 2M")
             DPMPP_2M_KARRAS = SD_Sampler("dpmpp_2m_karras", "DPM++", "DPM++ 2M Karras")
 
-        MAX_LOADED_CHECKPOINTS = 1
+        MAX_LOADED_CHECKPOINTS = 2

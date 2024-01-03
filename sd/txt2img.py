@@ -51,16 +51,26 @@ async def generate_txt2img(data: Txt2Img_GenerationRequest):
         f"Generating {data.iterations} images with {data.steps} steps using {checkpoint.name}... ({data.outputWidth}x{data.outputHeight})"
     )
 
+    print("Requesting checkpoint...")
     pipeline = await request_checkpoint(checkpoint.file, data.precision)
+    print(pipeline.dtype)
+
+    pipeline.safety_checker = None
+
+    print("Creting Generator...")
     generator = torch.Generator("cuda").manual_seed(data.seed)
 
+    print("Defining Scheduler...")
     pipeline.scheduler = DPMSolverMultistepScheduler.from_config(
-        pipeline.scheduler.config
+        pipeline.scheduler.config,
     )
+
+    print("Setting VAE...")
     pipeline.vae = AutoencoderKL.from_pretrained(
-        "stabilityai/sd-vae-ft-mse", torch_dtype=torch.float16
+        "stabilityai/sd-vae-ft-mse", torch_dtype=pipeline.dtype
     ).to("cuda")
 
+    print("Generating image...")
     image = pipeline(
         data.prompt,
         negative_prompt=data.negativePrompt,
