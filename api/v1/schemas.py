@@ -44,6 +44,12 @@ class Image_Response(BaseModel):
     url_full: str
 
 
+class Images_Response(BaseModel):
+    images: list[Image_Response]
+    amount: int
+    available: int
+
+
 # Request Bodies
 class Post_Checkpoint(BaseModel):
     handle: str
