@@ -134,6 +134,7 @@ model CivitAIOrigin {
 model Image {
     id             Int              @id @unique @default(autoincrement())
     fileName       String
+    created_at     DateTime         @default(now())
     GeneratedImage GeneratedImage[]
     UploadedImage  UploadedImage[]
 

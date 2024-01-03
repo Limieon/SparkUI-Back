@@ -37,6 +37,13 @@ class Sampler(BaseModel):
     group: str
 
 
+# Images
+class Image_Response(BaseModel):
+    file_name: str
+    created_at: int
+    url_full: str
+
+
 # Request Bodies
 class Post_Checkpoint(BaseModel):
     handle: str
