@@ -24,8 +24,7 @@ model Checkpoint {
 }
 
 model CheckpointVariation {
-    id         Int     @id @unique @default(autoincrement())
-    handle     String  @unique
+    handle     String  @id @unique
     name       String
     baseModel  String
     file       String?
@@ -163,23 +162,23 @@ model GenerationData {
     generationMethod String
 
     // Foreign keys
-    checkpointHandle      String
-    checkpointVariationId Int
-    vaeID                 Int
-    vaeVersionId          Int
-    embedding             Embedding[]
-    embeddingVersion      EmbeddingVersion[]
-    loras                 LoraWeight[]
-    sampler               String
-    precision             String
+    checkpointHandle          String
+    checkpointVariationHandle String
+    vaeID                     Int    @default(-1)
+    vaeVersionId              Int    @default(-1)
+    sampler                   String
+    precision                 String
 
     // Relations
     checkpoint          Checkpoint          @relation(fields: [checkpointHandle], references: [handle])
-    checkpointVariation CheckpointVariation @relation(fields: [checkpointVariationId], references: [id])
+    checkpointVariation CheckpointVariation @relation(fields: [checkpointVariationHandle], references: [handle])
     vae                 VAE                 @relation(fields: [vaeID], references: [id])
     vaeVersion          VAEVersion          @relation(fields: [vaeVersionId], references: [id])
 
-    generatedImage GeneratedImage[]
+    generatedImage   GeneratedImage[]
+    embedding        Embedding[]
+    embeddingVersion EmbeddingVersion[]
+    loras            LoraWeight[]
 }
 
 model UploadedImage {

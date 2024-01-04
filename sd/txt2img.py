@@ -82,24 +82,11 @@ async def generate_txt2img(data: Txt2Img_GenerationRequest):
         guidance_scale=data.cfgScale,
     ).images[0]
 
-    filename = path.join(
-        Config.StableDiffusion.Directories.IMAGES_OUT, f"{uuid.uuid4()}.png"
-    )
-    image.save(filename)
+    import utils
 
-    if not (await ImageGroup.prisma().find_first(where={"id": 1})):
-        await ImageGroup.prisma().create({"name": "Default Image Group"})
+    image_id = await utils.store_txt2img_generated_image(image, data)
 
     await sockets_broadcast(
         SocketMessageID.on_image_generated,
-        {
-            "id": (
-                await Image.prisma().create(
-                    data={
-                        "fileName": filename,
-                        "imageGroupId": 1,
-                    }
-                )
-            ).id
-        },
+        {"id": image_id},
     )

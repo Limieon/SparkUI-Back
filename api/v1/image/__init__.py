@@ -69,5 +69,10 @@ async def get_image(id: int) -> Image_Response:
         raise HTTPException(status_code=404)
 
 
+@router.get("/{id}/meta")
+async def get_image_meta():
+    return {"success": True}
+
+
 def init():
     return router

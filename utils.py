@@ -1,5 +1,6 @@
 import os
 import os.path as path
+import time
 
 import requests
 from urllib.parse import urlsplit
@@ -12,7 +13,15 @@ from typing import List
 from fastapi import UploadFile
 from os.path import basename
 
+from PIL import Image as PILImage
+
 from config import SparkUIConfig as Config
+
+from api.v1.schemas import (
+    Txt2Img_GenerationRequest,
+)
+
+from prisma.models import Image, ImageGroup, GeneratedImage, GenerationData
 
 
 async def upload_file(dir: str, file: UploadFile):
@@ -51,3 +60,61 @@ def download_file(url: str, dir: str, local_filename: str = None):
 
 def get_handle_from_string(val: str) -> str:
     return re.sub(r"[^a-zA-Z0-9]", "_", val)
+
+
+def get_checkpoint_variation_handle(handle: str):
+    return (handle.split("/")[0], handle.split("/")[1])
+
+
+async def store_txt2img_generated_image(
+    image: PILImage,
+    data: Txt2Img_GenerationRequest,
+    group_id: int = 1,
+):
+    time_ms = int(time.time())
+
+    filename = os.path.join(
+        Config.StableDiffusion.Directories.IMAGES_OUT, f"{time_ms}.png"
+    )
+
+    group = await ImageGroup.prisma().find_first(where={"id": group_id})
+    if group == None:
+        raise Exception(f"Cannot find image group with id {group_id}!")
+
+    (checkpoint_handle, checkpoint_variation_handle) = get_checkpoint_variation_handle(
+        data.checkpoint
+    )
+
+    print(f"{checkpoint_handle}-{checkpoint_variation_handle}")
+
+    image_id = (
+        await Image.prisma().create(
+            data={
+                "fileName": filename,
+                "imageGroupId": group.id,
+            }
+        )
+    ).id
+
+    await GeneratedImage.prisma().create(
+        data={
+            "imageId": image_id,
+            "generationDataId": (
+                await GenerationData.prisma().create(
+                    data={
+                        "checkpointHandle": checkpoint_handle,
+                        "checkpointVariationHandle": checkpoint_variation_handle,
+                        "generationMethod": "txt2img",
+                        "sampler": data.sampler,
+                        "precision": data.precision,
+                        "vaeID": 1,
+                        "vaeVersionId": 1,
+                    }
+                )
+            ).id,
+        }
+    )
+
+    image.save(filename)
+
+    return image_id
