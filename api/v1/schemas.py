@@ -61,6 +61,13 @@ class Sampler(BaseModel):
 
 
 # Images
+class Prompt_Response(BaseModel):
+    positive: str
+    negative: str
+    positiveStyle: str
+    negativeStyle: str
+
+
 class Image_Response(BaseModel):
     """
     Class used to store primitve images

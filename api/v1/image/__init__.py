@@ -18,7 +18,12 @@ from prisma.errors import UniqueViolationError
 
 from config import SparkUIConfig as Config
 from sd.checkpoint import upload_checkpoint
-from api.v1.schemas import Image_Response, Images_Response, Txt2Img_GenData
+from api.v1.schemas import (
+    Image_Response,
+    Images_Response,
+    Txt2Img_GenData,
+    Prompt_Response,
+)
 
 from api.socket import sockets_broadcast
 
@@ -29,41 +34,11 @@ router = APIRouter()
 async def get_images(offset: int = 0, limit: int = 50) -> Images_Response:
     res: list[Image_Response] = []
     for i in await Image.prisma().find_many(take=limit, skip=offset):
-        generation_data: Txt2Img_GenData = None
-
-        generated_image = await GeneratedImage.prisma().find_first(where={"id": i.id})
-
-        if generated_image:
-            print(generated_image.generationDataId)
-            db_gen_data = await Txt2Img_GenerationData.prisma().find_first_or_raise(
-                where={"id": generated_image.generationDataId}
-            )
-
-            generation_data = Txt2Img_GenData(
-                prompt=db_gen_data.prompt,
-                negativePrompt=db_gen_data.negativePrompt,
-                stylePrompt=db_gen_data.stylePrompt,
-                negativeStylePrompt=db_gen_data.negativeStylePrompt,
-                checkpoint=f"{db_gen_data.checkpointHandle}/{db_gen_data.checkpointVariationHandle}",
-                steps=db_gen_data.steps,
-                cfgScale=db_gen_data.cfg_scale,
-                seed=db_gen_data.seed,
-                outputWidth=db_gen_data.width,
-                outputHeight=db_gen_data.height,
-                precision=db_gen_data.precision,
-                vae="default",
-                vae_version="default",
-                loras=[],
-                sampler=db_gen_data.sampler,
-                iterations=1,  # Will be removed in the future
-            )
-
         res.append(
             Image_Response(
                 file_name=i.fileName,
                 created_at=int(i.created_at.timestamp()),
                 url_full=f"/v1/image/{i.id}/full.png",
-                generation_data=generation_data,
             )
         )
 
@@ -100,6 +75,75 @@ async def get_image(id: int) -> Image_Response:
             file_name=image.fileName,
             created_at=int(image.created_at.timestamp()),
             url_full=f"/v1/image/{id}/full.png",
+        )
+    except:
+        raise HTTPException(status_code=404)
+
+
+@router.get("/{id}/prompt")
+async def get_image(id: int) -> Prompt_Response:
+    try:
+        gen_data = await Txt2Img_GenerationData.prisma().find_first(
+            where={
+                "id": (
+                    await GeneratedImage.prisma().find_first(where={"imageId": id})
+                ).id
+            }
+        )
+
+        return Prompt_Response(
+            positive=gen_data.prompt,
+            negative=gen_data.negativePrompt,
+            positiveStyle=gen_data.stylePrompt,
+            negativeStyle=gen_data.negativeStylePrompt,
+        )
+    except:
+        raise HTTPException(status_code=404)
+
+
+@router.get("/{id}/seed")
+async def get_image(id: int) -> int:
+    try:
+        gen_data = await Txt2Img_GenerationData.prisma().find_first(
+            where={
+                "id": (
+                    await GeneratedImage.prisma().find_first(where={"imageId": id})
+                ).id
+            }
+        )
+
+        return gen_data.seed
+    except:
+        raise HTTPException(status_code=404)
+
+
+@router.get("/{id}/gen_data")
+async def get_image(id: int) -> Txt2Img_GenData:
+    try:
+        gen_data = await Txt2Img_GenerationData.prisma().find_first(
+            where={
+                "id": (
+                    await GeneratedImage.prisma().find_first(where={"imageId": id})
+                ).id
+            }
+        )
+
+        return Txt2Img_GenData(
+            prompt=gen_data.prompt,
+            negativePrompt=gen_data.negativePrompt,
+            stylePrompt=gen_data.stylePrompt,
+            negativeStylePrompt=gen_data.negativeStylePrompt,
+            checkpoint=f"{gen_data.checkpointHandle}/{gen_data.checkpointVariationHandle}",
+            steps=gen_data.steps,
+            cfgScale=gen_data.cfg_scale,
+            seed=gen_data.seed,
+            outputWidth=gen_data.width,
+            outputHeight=gen_data.height,
+            precision=gen_data.precision,
+            vae="default/default",
+            loras=[],
+            sampler=gen_data.sampler,
+            iterations=1,  # Will be removed in the future
         )
     except:
         raise HTTPException(status_code=404)
