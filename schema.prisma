@@ -19,7 +19,7 @@ model Checkpoint {
 
     civitai_id Int?
 
-    GenerationData      GenerationData[]
+    GenerationData      Txt2Img_GenerationData[]
     CheckpointVariation CheckpointVariation[]
 }
 
@@ -40,7 +40,7 @@ model CheckpointVariation {
     // Relations
     checkpoint Checkpoint @relation(fields: [checkpointHandle], references: [handle])
 
-    GenerationData GenerationData[]
+    GenerationData Txt2Img_GenerationData[]
 }
 
 // ---> Lora <--- //
@@ -77,9 +77,9 @@ model LoraWeight {
     GenerationDataId Int?
 
     // Relations
-    lora           Lora            @relation(fields: [loraId], references: [id])
-    loraVersion    LoraVersion     @relation(fields: [loraVersionId], references: [id])
-    GenerationData GenerationData? @relation(fields: [GenerationDataId], references: [id])
+    lora           Lora                    @relation(fields: [loraId], references: [id])
+    loraVersion    LoraVersion             @relation(fields: [loraVersionId], references: [id])
+    GenerationData Txt2Img_GenerationData? @relation(fields: [GenerationDataId], references: [id])
 }
 
 // ---> Embedding <--- //
@@ -92,30 +92,30 @@ model Embedding {
     GenerationDataId Int?
 
     // Relations
-    GenerationData GenerationData? @relation(fields: [GenerationDataId], references: [id])
+    GenerationData Txt2Img_GenerationData? @relation(fields: [GenerationDataId], references: [id])
 }
 
 model EmbeddingVersion {
-    id               Int             @id @unique @default(autoincrement())
-    handle           String          @unique
+    id               Int                     @id @unique @default(autoincrement())
+    handle           String                  @unique
     name             String
-    GenerationData   GenerationData? @relation(fields: [GenerationDataId], references: [id])
+    GenerationData   Txt2Img_GenerationData? @relation(fields: [GenerationDataId], references: [id])
     GenerationDataId Int?
 }
 
 // ---> Embedding <--- //
 model VAE {
-    id             Int              @id @unique @default(autoincrement())
-    handle         String           @unique
+    id             Int                      @id @unique @default(autoincrement())
+    handle         String                   @unique
     name           String
-    GenerationData GenerationData[]
+    GenerationData Txt2Img_GenerationData[]
 }
 
 model VAEVersion {
-    id             Int              @id @unique @default(autoincrement())
-    handle         String           @unique
+    id             Int                      @id @unique @default(autoincrement())
+    handle         String                   @unique
     name           String
-    GenerationData GenerationData[]
+    GenerationData Txt2Img_GenerationData[]
 }
 
 /// ---> Origins <--- //
@@ -150,16 +150,24 @@ model GeneratedImage {
     imageId          Int?
     generationDataId Int
 
-    image          Image?         @relation(fields: [imageId], references: [id])
-    generationData GenerationData @relation(fields: [generationDataId], references: [id])
+    image          Image?                 @relation(fields: [imageId], references: [id])
+    generationData Txt2Img_GenerationData @relation(fields: [generationDataId], references: [id])
     QueueItem      QueueItem[]
 }
 
-model GenerationData {
+model Txt2Img_GenerationData {
     id Int @id @unique @default(autoincrement())
 
-    // txt2img, img2img, ...
-    generationMethod String
+    prompt              String @default("")
+    negativePrompt      String @default("")
+    stylePrompt         String @default("")
+    negativeStylePrompt String @default("")
+
+    steps     Int
+    cfg_scale Float
+    seed      Int
+    width     Int
+    height    Int
 
     // Foreign keys
     checkpointHandle          String
@@ -179,6 +187,8 @@ model GenerationData {
     embedding        Embedding[]
     embeddingVersion EmbeddingVersion[]
     loras            LoraWeight[]
+
+    @@map("GenerationData")
 }
 
 model UploadedImage {

@@ -18,7 +18,7 @@ from api.v1.schemas import (
     Sampler,
     Post_Checkpoint,
     Post_CheckpointVariation,
-    Txt2Img_GenerationRequest,
+    Txt2Img_GenData,
 )
 
 from api.socket import sockets_broadcast
@@ -245,7 +245,7 @@ async def post_civitai_import(modelid: int, versionIDs: List[int]):
 
 # Image Generation
 @router.post("/txt2img", tags=["Image Generation"])
-async def generate_txt2img(data: Txt2Img_GenerationRequest):
+async def generate_txt2img(data: Txt2Img_GenData):
     import sd.txt2img
 
     res = await sd.txt2img.queue_txt2img(data)

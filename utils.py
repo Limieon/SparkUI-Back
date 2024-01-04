@@ -18,10 +18,10 @@ from PIL import Image as PILImage
 from config import SparkUIConfig as Config
 
 from api.v1.schemas import (
-    Txt2Img_GenerationRequest,
+    Txt2Img_GenData,
 )
 
-from prisma.models import Image, ImageGroup, GeneratedImage, GenerationData
+from prisma.models import Image, ImageGroup, GeneratedImage, Txt2Img_GenerationData
 
 
 async def upload_file(dir: str, file: UploadFile):
@@ -68,7 +68,7 @@ def get_checkpoint_variation_handle(handle: str):
 
 async def store_txt2img_generated_image(
     image: PILImage,
-    data: Txt2Img_GenerationRequest,
+    data: Txt2Img_GenData,
     group_id: int = 1,
 ):
     time_ms = int(time.time())
@@ -100,15 +100,23 @@ async def store_txt2img_generated_image(
         data={
             "imageId": image_id,
             "generationDataId": (
-                await GenerationData.prisma().create(
+                await Txt2Img_GenerationData.prisma().create(
                     data={
                         "checkpointHandle": checkpoint_handle,
                         "checkpointVariationHandle": checkpoint_variation_handle,
-                        "generationMethod": "txt2img",
                         "sampler": data.sampler,
                         "precision": data.precision,
                         "vaeID": 1,
                         "vaeVersionId": 1,
+                        "steps": data.steps,
+                        "cfg_scale": data.cfgScale,
+                        "seed": data.seed,
+                        "width": data.outputWidth,
+                        "height": data.outputHeight,
+                        "prompt": data.prompt,
+                        "negativePrompt": data.negativePrompt,
+                        "stylePrompt": data.stylePrompt,
+                        "negativeStylePrompt": data.negativePrompt,
                     }
                 )
             ).id,

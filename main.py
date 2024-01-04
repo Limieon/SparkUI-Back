@@ -68,14 +68,14 @@ async def init():
     print("Initializing routes...")
 
     app.include_router(
-        api.v1.stable_diffusion.init(),
-        prefix="/v1/stable_diffusion",
-        tags=["StableDiffusion"],
-    )
-    app.include_router(
         api.v1.image.init(),
         prefix="/v1/image",
         tags=["Image"],
+    )
+    app.include_router(
+        api.v1.stable_diffusion.init(),
+        prefix="/v1/stable_diffusion",
+        tags=["StableDiffusion"],
     )
 
 

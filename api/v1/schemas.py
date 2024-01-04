@@ -5,6 +5,29 @@ from enum import Enum
 from datetime import datetime
 
 
+class Lora_Weight(BaseModel):
+    handle: str
+    weight: float
+
+
+class Txt2Img_GenData(BaseModel):
+    prompt: str
+    negativePrompt: str
+    stylePrompt: str
+    negativeStylePrompt: str
+    checkpoint: str
+    steps: int
+    iterations: int
+    cfgScale: float
+    sampler: str
+    vae: str
+    precision: str
+    seed: int
+    outputWidth: int
+    outputHeight: int
+    loras: List[Lora_Weight]
+
+
 # Checkpoints
 class CheckpointUsageInfo(BaseModel):
     width: Optional[int]
@@ -39,9 +62,15 @@ class Sampler(BaseModel):
 
 # Images
 class Image_Response(BaseModel):
+    """
+    Class used to store primitve images
+    """
+
     file_name: str
     created_at: int
     url_full: str
+
+    generation_data: Optional[Txt2Img_GenData]
 
 
 class Images_Response(BaseModel):
@@ -61,27 +90,3 @@ class Post_CheckpointVariation(BaseModel):
     name: str
     base_model: str
     preview_url: str
-
-
-# Generation Requests
-class Lora_Weight(BaseModel):
-    handle: str
-    weight: float
-
-
-class Txt2Img_GenerationRequest(BaseModel):
-    prompt: str
-    negativePrompt: str
-    stylePrompt: str
-    negativeStylePrompt: str
-    checkpoint: str
-    steps: int
-    iterations: int
-    cfgScale: float
-    sampler: str
-    vae: str
-    precision: str
-    seed: int
-    outputWidth: int
-    outputHeight: int
-    loras: List[Lora_Weight]

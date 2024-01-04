@@ -19,14 +19,14 @@ from PIL import Image
 from sd.checkpoint_manager import request_checkpoint
 
 from api.v1.schemas import (
-    Txt2Img_GenerationRequest,
+    Txt2Img_GenData,
 )
 from prisma.models import (
     CheckpointVariation,
     Image,
     ImageGroup,
     GeneratedImage,
-    GenerationData,
+    Txt2Img_GenerationData,
 )
 
 from config import SparkUIConfig as Config
@@ -35,11 +35,11 @@ from config import SparkUIConfig as Config
 from api.socket import sockets_broadcast, SocketMessageID
 
 
-async def queue_txt2img(data: Txt2Img_GenerationRequest):
+async def queue_txt2img(data: Txt2Img_GenData):
     return await generate_txt2img(data)
 
 
-async def generate_txt2img(data: Txt2Img_GenerationRequest):
+async def generate_txt2img(data: Txt2Img_GenData):
     checkpoint = await CheckpointVariation.prisma().find_first(
         where={
             "checkpointHandle": data.checkpoint.split("/")[0],
