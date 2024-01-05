@@ -4,3 +4,7 @@ concepts/
 
 assets/
 *.sqlite
+
+
+# Added by cargo
+/target

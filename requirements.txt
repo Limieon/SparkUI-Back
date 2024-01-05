@@ -1,9 +1,0 @@
-uvicorn[default]
-fastapi
-python-multipart
-prisma
-requests
-tqdm
-omegaconf
-transformers
-iofiles
