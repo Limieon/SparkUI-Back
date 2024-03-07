@@ -1,6 +1,9 @@
-.venv/
+# Python
+.venv
 __pycache__/
 
-assets/models/
-assets/outputs/
-assets/images/
+# SparkUI
+assets/models
+assets/outputs
+
+.env

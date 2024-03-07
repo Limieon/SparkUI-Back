@@ -1,66 +1,59 @@
 from enum import Enum
+from dataclasses import dataclass
 
 import torch
-from diffusers import StableDiffusionXLPipeline, StableDiffusionPipeline, DiffusionPipeline
 
-from hash_utils import gen_sha256
+from diffusers import (
+    DiffusionPipeline,
+    StableDiffusionPipeline,
+    StableDiffusionXLPipeline,
+)
 
-class StableDiffusionBaseVersion(Enum):
+from hash_utils import get_sha256
+
+
+class StableDiffusionBaseModel(Enum):
     SD1_5 = 1
     SD2_1 = 2
     SDXL1_0 = 10
-    SDXLTurbo = 20
-    SDXLLightning = 30
+    SDXL1_0Turbo = 20
+    SDXL1_0Lightning = 30
 
-class StableDiffusionQueue:
-    def __init__(self):
-        self.pipelines = {}
-        self.model_hashes = {}
 
-        pass
-
-    def set_max_models_in_vram(self, amount: int):
-        self.max_models_in_vram = amount
-
-    def get_hash_from_file(self, path: str):
+class StableDiffusionHandler:
+    def get_model_hash(self, path: str):
         if not path in self.model_hashes:
-            self.model_hashes[path] = gen_sha256(path)
-        
+            self.model_hashes[path] = get_sha256(path)
+
         return self.model_hashes[path]
 
-    def load_model(self, path: str, base: StableDiffusionBaseVersion) -> DiffusionPipeline:
-        hash = gen_sha256(path)
-        self.model_hashes[path] = hash
+    def load_pipeline(self, path: str, base: StableDiffusionBaseModel):
+        hash = self.get_model_hash(path)
 
         if not hash in self.pipelines:
-            print(f"Model '{path}' not cached! Loading model...")
+            print(f"Model '{path}' not cached! Loading...")
 
-            if base == StableDiffusionBaseVersion.SD1_5 or base == StableDiffusionBaseVersion.SD2_1:
+            if base == StableDiffusionBaseModel.SD1_5 or base == StableDiffusionBaseModel.SD2_1:
                 pipeline = StableDiffusionPipeline.from_single_file(path, torch_dtype=torch.float16, variant="fp16", use_safetensors=True)
                 pipeline.to("cuda")
-                
-                pipeline.enable_xformers_memory_efficient_attention()
+
                 pipeline.enable_model_cpu_offload()
+                pipeline.enable_xformers_memory_efficient_attention()
 
                 self.pipelines[hash] = pipeline
-            
-            if base == StableDiffusionBaseVersion.SDXL1_0 or base == StableDiffusionBaseVersion.SDXLTurbo or base == StableDiffusionBaseVersion.SDXLLightning:
+
+            if base == StableDiffusionBaseModel.SDXL1_0 or base == StableDiffusionBaseModel.SDXL1_0Turbo or base == StableDiffusionBaseModel.SDXL1_0Lightning:
                 pipeline = StableDiffusionXLPipeline.from_single_file(path, torch_dtype=torch.float16, variant="fp16", use_safetensors=True)
                 pipeline.to("cuda")
 
-                pipeline.enable_xformers_memory_efficient_attention()
                 pipeline.enable_model_cpu_offload()
+                pipeline.enable_xformers_memory_efficient_attention()
 
                 self.pipelines[hash] = pipeline
-            
+
             print("Done!")
 
         return self.pipelines[hash]
 
-    # Stores model pipelines along their hashes
-    pipelines: dict[str, DiffusionPipeline]
-
-    # Stores model file paths along their hashes
-    model_hashes: dict[str, str]
-
-    max_models_in_vram: int = 2
+    model_hashes: dict[str, str] = {}
+    pipelines: dict[str, DiffusionPipeline] = {}

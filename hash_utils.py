@@ -1,6 +1,7 @@
 import hashlib
 
-def gen_sha256(filepath):
+
+def get_sha256(filepath: str) -> str:
     sha256_hash = hashlib.sha256()
 
     with open(filepath, "rb") as file:
