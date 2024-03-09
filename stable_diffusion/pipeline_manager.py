@@ -22,14 +22,14 @@ class PipelineManager:
 
             pipeline: DiffusionPipeline = None
             if base == StableDiffusionBaseModel.SD1_5 or base == StableDiffusionBaseModel.SD2_1:
-                pipeline = StableDiffusionPipeline.from_single_file(path, torch_dtype=torch.float16, variant="fp16", use_safetensors=True)
+                pipeline = StableDiffusionPipeline.from_single_file(path, torch_dtype=torch.float16, use_safetensors=True)
 
             if base == StableDiffusionBaseModel.SDXL1_0 or base == StableDiffusionBaseModel.SDXL1_0Turbo or base == StableDiffusionBaseModel.SDXL1_0Lightning:
-                pipeline = StableDiffusionXLPipeline.from_single_file(path, torch_dtype=torch.float16, variant="fp16", use_safetensors=True)
+                pipeline = StableDiffusionXLPipeline.from_single_file(path, torch_dtype=torch.float16, use_safetensors=True)
 
             if use_gpu:
                 pipeline.to("cuda")
-                pipeline.enable_model_cpu_offload()
+                pipeline.enable_sequential_cpu_offload()
                 pipeline.enable_xformers_memory_efficient_attention()
 
             self.pipelines[hash] = pipeline
