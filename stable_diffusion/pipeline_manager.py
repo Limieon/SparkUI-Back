@@ -1,7 +1,13 @@
+import asyncio
 import torch
+
+from queue import Queue
+from typing import Callable
+from PIL.Image import Image
 
 from diffusers import DiffusionPipeline, StableDiffusionPipeline, StableDiffusionXLPipeline
 
+from .generation_request import Txt2ImgRequest
 from . import StableDiffusionBaseModel
 
 from hash_utils import get_sha256
@@ -29,7 +35,7 @@ class PipelineManager:
 
             if use_gpu:
                 pipeline.to("cuda")
-                pipeline.enable_sequential_cpu_offload()
+                pipeline.enable_model_cpu_offload()
                 pipeline.enable_xformers_memory_efficient_attention()
 
             self.pipelines[hash] = pipeline
@@ -40,3 +46,52 @@ class PipelineManager:
 
     model_hashes: dict[str, str] = {}
     pipelines: dict[str, DiffusionPipeline] = {}
+
+
+class GenerationQueue:
+    def __init__(self, pipeline_manager: PipelineManager):
+        self.pipeline_manager = pipeline_manager
+        self.queue = Queue()
+        self.results = {}
+
+    async def queue_txt2img(self, generation_request: Txt2ImgRequest):
+        result_ready = asyncio.Event()
+        self.queue.put((generation_request, result_ready))
+        await result_ready.wait()
+
+        images = self.results.pop(generation_request, None)
+        return images
+
+    def start_queue(self):
+        asyncio.ensure_future(self.process_queue())
+
+    async def process_queue(self):
+        while True:
+            if self.queue.empty():
+                await asyncio.sleep(1)
+                continue
+
+            gen_data, result_ready = self.queue.get()
+
+            pipe = self.pipeline_manager.load_pipeline(gen_data.checkpoint, StableDiffusionBaseModel.SDXL1_0, True)
+
+            for lora in gen_data.loras:
+                pipe.load_lora_weights("./assets/models/Lora", weight_name=lora.lora, weight=lora.weight)
+
+            images = pipe(
+                prompt=gen_data.prompt,
+                negative_prompt=gen_data.negative_prompt,
+                num_inference_steps=gen_data.steps,
+                guidance_scale=gen_data.cfg_scale,
+                width=gen_data.width,
+                height=gen_data.height,
+                num_images_per_promt=gen_data.num_images,
+            ).images
+
+            self.results[gen_data] = images
+
+            result_ready.set()
+
+    queue: Queue[tuple[Txt2ImgRequest, asyncio.Event]]
+    pipeline_manager: PipelineManager
+    results: dict[Txt2ImgRequest, list[Image]]
