@@ -8,8 +8,216 @@ generator client {
     recursive_type_depth = 5
 }
 
+// StableDiffusion Base Types
 model StableDiffusionBase {
     id Int @id @unique @default(autoincrement())
 
-    name String
+    name        String
+    handle      String
+    description String?
+    file        String?
+    foramt      String?
+    sdBaseModel String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    tags String[]
+
+    StableDiffusionCheckpoint StableDiffusionCheckpoint[]
+    StableDiffusionLora       StableDiffusionLora[]
+    StableDiffusionEmbedding  StableDiffusionEmbedding[]
+    StableDiffusionVAE        StableDiffusionVAE[]
+}
+
+model StableDiffusionCheckpoint {
+    baseID Int @id
+
+    stableDiffusionCheckpointGroupId Int?
+
+    base                           StableDiffusionBase             @relation(fields: [baseID], references: [id])
+    StableDiffusionCheckpointGroup StableDiffusionCheckpointGroup? @relation(fields: [stableDiffusionCheckpointGroupId], references: [id])
+}
+
+model StableDiffusionLora {
+    baseID Int @id
+
+    triggerWords String[]
+    minWeight    Float
+    maxWeight    Float
+    loraType     String
+
+    stableDiffusionLoraGroupId Int?
+
+    base                     StableDiffusionBase       @relation(fields: [baseID], references: [id])
+    StableDiffusionLoraGroup StableDiffusionLoraGroup? @relation(fields: [stableDiffusionLoraGroupId], references: [id])
+}
+
+model StableDiffusionEmbedding {
+    baseID Int @id
+
+    triggerWords String[]
+
+    stableDiffusionEmbeddingGroupId Int?
+
+    base                          StableDiffusionBase            @relation(fields: [baseID], references: [id])
+    StableDiffusionEmbeddingGroup StableDiffusionEmbeddingGroup? @relation(fields: [stableDiffusionEmbeddingGroupId], references: [id])
+}
+
+model StableDiffusionVAE {
+    baseID Int @id
+
+    stableDiffusionVAEGroupId Int?
+
+    base                    StableDiffusionBase      @relation(fields: [baseID], references: [id])
+    StableDiffusionVAEGroup StableDiffusionVAEGroup? @relation(fields: [stableDiffusionVAEGroupId], references: [id])
+}
+
+// StableDiffusion Groups
+model StableDiffusionCheckpointGroup {
+    id Int @id @unique @default(autoincrement())
+
+    name   String
+    handle String @unique
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    checkpoints StableDiffusionCheckpoint[]
+}
+
+model StableDiffusionLoraGroup {
+    id Int @id @unique @default(autoincrement())
+
+    name   String
+    handle String @unique
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    loras StableDiffusionLora[]
+}
+
+model StableDiffusionEmbeddingGroup {
+    id Int @id @unique @default(autoincrement())
+
+    name   String
+    handle String @unique
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    embeddings StableDiffusionEmbedding[]
+}
+
+model StableDiffusionVAEGroup {
+    id Int @id @unique @default(autoincrement())
+
+    name   String
+    handle String @unique
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    vaes StableDiffusionVAE[]
+}
+
+// User Generated Data
+model Image {
+    id Int @id @unique @default(autoincrement())
+
+    file   String
+    format String
+
+    tags String[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    GeneratedImage                   GeneratedImage[]
+    StableDiffusionControlNetPose    StableDiffusionControlNetPose[]
+    StableDiffusionControlNetCanny   StableDiffusionControlNetCanny[]
+    StableDiffusionControlNetShuffle StableDiffusionControlNetShuffle[]
+    StableDiffusionControlNetDepth   StableDiffusionControlNetDepth[]
+    StableDiffusionTraningData       StableDiffusionTrainingData[]
+}
+
+model GeneratedImage {
+    imageId Int @id
+
+    image Image @relation(fields: [imageId], references: [id])
+}
+
+// StableDiffusion ControlNet images
+model StableDiffusionControlNetPose {
+    id Int @id @unique @default(autoincrement())
+
+    poseData       Json
+    processedImage Image @relation(fields: [imageId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    imageId Int
+}
+
+model StableDiffusionControlNetCanny {
+    id Int @id @unique @default(autoincrement())
+
+    processedImage Image @relation(fields: [imageId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    imageId Int
+}
+
+model StableDiffusionControlNetShuffle {
+    id Int @id @unique @default(autoincrement())
+
+    processedImage Image @relation(fields: [imageId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    imageId Int
+}
+
+model StableDiffusionControlNetDepth {
+    id Int @id @unique @default(autoincrement())
+
+    processedImage Image @relation(fields: [imageId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    imageId Int
+}
+
+// StableDiffusion Training Data
+model StableDiffusionTrainingData {
+    id Int @id @unique @default(autoincrement())
+
+    imageId  Int
+    captions String[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    image                        Image                       @relation(fields: [imageId], references: [id])
+    StableDiffusionTrainingSet   StableDiffusionTrainingSet? @relation(fields: [stableDiffusionTrainingSetId], references: [id])
+    stableDiffusionTrainingSetId Int?
+}
+
+model StableDiffusionTrainingSet {
+    id Int @id @unique @default(autoincrement())
+
+    name        String
+    description String
+    tags        String[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    data StableDiffusionTrainingData[]
 }
