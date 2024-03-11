@@ -29,12 +29,19 @@ class PipelineManager:
 
             pipeline: DiffusionPipeline = None
             if base == StableDiffusionBaseModel.SD1_5 or base == StableDiffusionBaseModel.SD2_1:
-                pipeline = StableDiffusionPipeline.from_single_file(path, torch_dtype=torch.float16 if use_gpu else torch.float32, use_safetensors=True)
+                pipeline = StableDiffusionPipeline.from_single_file(
+                    path, torch_dtype=torch.float16 if use_gpu else torch.float32, use_safetensors=True
+                )
 
-            if base == StableDiffusionBaseModel.SDXL1_0 or base == StableDiffusionBaseModel.SDXL1_0Turbo or base == StableDiffusionBaseModel.SDXL1_0Lightning:
-                pipeline = StableDiffusionXLPipeline.from_single_file(path, torch_dtype=torch.float16 if use_gpu else torch.float32, use_safetensors=True)
+            if (
+                base == StableDiffusionBaseModel.SDXL1_0
+                or base == StableDiffusionBaseModel.SDXL1_0Turbo
+                or base == StableDiffusionBaseModel.SDXL1_0Lightning
+            ):
+                pipeline = StableDiffusionXLPipeline.from_single_file(
+                    path, torch_dtype=torch.float16 if use_gpu else torch.float32, use_safetensors=True
+                )
 
-            
             if use_gpu:
                 pipeline.to("cuda")
                 pipeline.enable_model_cpu_offload()
@@ -94,7 +101,7 @@ class GenerationQueue:
                 guidance_scale=gen_data.cfg_scale,
                 width=gen_data.width,
                 height=gen_data.height,
-                num_images_per_promt=gen_data.num_images,
+                num_images_per_prompt=gen_data.num_images,
             ).images
 
             self.results[gen_data] = images
