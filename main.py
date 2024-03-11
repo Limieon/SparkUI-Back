@@ -5,6 +5,7 @@ import sys
 from fastapi import FastAPI
 
 from stable_diffusion import StableDiffusionBaseModel
+from stable_diffusion.importer import sd_import_models, SDImportConfig
 from stable_diffusion.pipeline_manager import PipelineManager
 
 from dotenv import load_dotenv
@@ -20,7 +21,17 @@ async def main():
 
 
 async def import_models():
-    print("Importing new models...")
+    await sd_import_models(
+        SDImportConfig(
+            models_dir=os.getenv("SPARK_DIRS_MODELS"),
+            checkpoints=os.getenv("SPARK_DIRS_SD_CHECKPOINT"),
+            embeddings=os.getenv("SPARK_DIRS_SD_EMBEDDING"),
+            loras=os.getenv("SPARK_DIRS_SD_LORAS"),
+            lycorsis=os.getenv("SPARK_DIRS_SD_LYCORSIS"),
+            control_nets=os.getenv("SPARK_DIRS_SD_CONTROL_NETS"),
+            vaes=os.getenv("SPARK_DIRS_SD_VAES"),
+        )
+    )
 
 
 async def start_inference_server():

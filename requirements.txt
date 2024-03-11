@@ -1,0 +1,22 @@
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch==2.2.0+cu121
+
+accelerate
+DeepCache
+diffusers[torch]
+numpy
+omegaconf
+pillow
+python-dotenv
+regex
+requests
+safetensors
+sympy
+tokenizers
+tqdm
+transformers
+typing_extensions
+urllib3
+xformers
+FastAPI
+uvicorn
