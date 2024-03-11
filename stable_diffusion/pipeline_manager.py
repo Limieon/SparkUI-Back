@@ -1,3 +1,4 @@
+import os
 import asyncio
 import torch
 
@@ -29,18 +30,10 @@ class PipelineManager:
 
             pipeline: DiffusionPipeline = None
             if base == StableDiffusionBaseModel.SD1_5 or base == StableDiffusionBaseModel.SD2_1:
-                pipeline = StableDiffusionPipeline.from_single_file(
-                    path, torch_dtype=torch.float16 if use_gpu else torch.float32, use_safetensors=True
-                )
+                pipeline = StableDiffusionPipeline.from_single_file(path, torch_dtype=torch.float16 if use_gpu else torch.float32, use_safetensors=True)
 
-            if (
-                base == StableDiffusionBaseModel.SDXL1_0
-                or base == StableDiffusionBaseModel.SDXL1_0Turbo
-                or base == StableDiffusionBaseModel.SDXL1_0Lightning
-            ):
-                pipeline = StableDiffusionXLPipeline.from_single_file(
-                    path, torch_dtype=torch.float16 if use_gpu else torch.float32, use_safetensors=True
-                )
+            if base == StableDiffusionBaseModel.SDXL1_0 or base == StableDiffusionBaseModel.SDXL1_0Turbo or base == StableDiffusionBaseModel.SDXL1_0Lightning:
+                pipeline = StableDiffusionXLPipeline.from_single_file(path, torch_dtype=torch.float16 if use_gpu else torch.float32, use_safetensors=True)
 
             if use_gpu:
                 pipeline.to("cuda")
@@ -89,7 +82,9 @@ class GenerationQueue:
 
             gen_data, result_ready = self.queue.get()
 
-            pipe = self.pipeline_manager.load_pipeline(gen_data.checkpoint, StableDiffusionBaseModel.SD1_5, False)
+            pipe = self.pipeline_manager.load_pipeline(
+                gen_data.checkpoint, StableDiffusionBaseModel.SDXL1_0, use_gpu=True if os.getenv("SPARK_USE_GPU") == "true" else False
+            )
 
             for lora in gen_data.loras:
                 pipe.load_lora_weights("./assets/models/Lora", weight_name=lora.lora, weight=lora.weight)
