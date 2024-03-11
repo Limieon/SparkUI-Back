@@ -1,4 +1,9 @@
-import math
+import os
+import aiohttp
+import aiofiles
+
+import uuid
+
 from PIL import ImageDraw, Image
 
 
@@ -33,3 +38,32 @@ def merge_images(images):
         output_image.paste(images[i], (x_position, y_position))
 
     return output_image
+
+
+async def download_image(url: str, path: str) -> str:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                # Get the filename from the content disposition header
+                content_disposition = response.headers.get("Content-Disposition")
+                content_type = response.headers.get("Content-Type")
+
+                print(content_disposition)
+                filename = content_disposition.split("filename=")[-1].strip('"') if content_disposition else f"{uuid.uuid4().hex}.{content_type.split('/')[1]}"
+
+                # Ensure the directory exists
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+
+                # Save the image to the specified path with the extracted filename
+                file_path = os.path.join(path, filename)
+                async with aiofiles.open(file_path, "wb") as f:
+                    while True:
+                        chunk = await response.content.read(1024)
+                        if not chunk:
+                            break
+                        await f.write(chunk)
+
+                print(f"Image downloaded and saved to {file_path}")
+                return file_path
+            else:
+                print(f"Failed to download image. Status code: {response.status}")

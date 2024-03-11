@@ -2,6 +2,8 @@ import asyncio
 import os
 import sys
 
+import spark
+
 from fastapi import FastAPI
 
 from stable_diffusion import StableDiffusionBaseModel
@@ -14,6 +16,8 @@ load_dotenv()
 
 
 async def main():
+    await spark.init()
+
     if "--import" in sys.argv:
         await import_models()
 
@@ -24,19 +28,19 @@ async def import_models():
     await sd_import_models(
         SDImportConfig(
             models_dir=os.getenv("SPARK_DIRS_MODELS"),
-            checkpoints=os.getenv("SPARK_DIRS_SD_CHECKPOINT"),
-            embeddings=os.getenv("SPARK_DIRS_SD_EMBEDDING"),
-            loras=os.getenv("SPARK_DIRS_SD_LORAS"),
-            lycorsis=os.getenv("SPARK_DIRS_SD_LYCORSIS"),
-            control_nets=os.getenv("SPARK_DIRS_SD_CONTROL_NETS"),
-            vaes=os.getenv("SPARK_DIRS_SD_VAES"),
+            civitai_key=os.getenv("SPARK_CIVITAI_KEY"),
+            checkpoints=os.getenv("SPARK_DIRS_SD_CHECKPOINT").split(","),
+            embeddings=os.getenv("SPARK_DIRS_SD_EMBEDDING").split(","),
+            loras=os.getenv("SPARK_DIRS_SD_LORA").split(","),
+            lycorsis=os.getenv("SPARK_DIRS_SD_LYCORSIS").split(","),
+            control_nets=os.getenv("SPARK_DIRS_SD_CONTROL_NET").split(","),
+            vaes=os.getenv("SPARK_DIRS_SD_VAE").split(","),
         )
     )
 
 
 async def start_inference_server():
     import api
-    import spark
 
     await api.serve(spark.app, os.getenv("SPARK_API_HOST"), int(os.getenv("SPARK_API_PORT")))
 

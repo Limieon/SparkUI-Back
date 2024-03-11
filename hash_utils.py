@@ -5,7 +5,6 @@ def get_sha256(filepath: str) -> str:
     sha256_hash = hashlib.sha256()
 
     with open(filepath, "rb") as file:
-        # Read the file in chunks of 4K
         for byte_block in iter(lambda: file.read(4096), b""):
             sha256_hash.update(byte_block)
 

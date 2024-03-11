@@ -20,3 +20,6 @@ urllib3
 xformers
 FastAPI
 uvicorn
+prisma
+aiofiles
+aiohttp

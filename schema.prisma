@@ -13,14 +13,20 @@ model StableDiffusionBase {
     id Int @id @unique @default(autoincrement())
 
     name        String
-    handle      String
     description String?
     file        String?
-    foramt      String?
+    format      String?
+    sha256      String
     sdBaseModel String
+
+    originPage  String?
+    civitaiID   Int?
+    civitaiData Json
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    previewImages Image[]
 
     tags String[]
 
@@ -77,8 +83,7 @@ model StableDiffusionVAE {
 model StableDiffusionCheckpointGroup {
     id Int @id @unique @default(autoincrement())
 
-    name   String
-    handle String @unique
+    name String
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -140,6 +145,10 @@ model Image {
     StableDiffusionControlNetShuffle StableDiffusionControlNetShuffle[]
     StableDiffusionControlNetDepth   StableDiffusionControlNetDepth[]
     StableDiffusionTraningData       StableDiffusionTrainingData[]
+
+    // Relations used for preview images
+    stableDiffusionBaseId Int?
+    StableDiffusionBase   StableDiffusionBase? @relation(fields: [stableDiffusionBaseId], references: [id])
 }
 
 model GeneratedImage {
