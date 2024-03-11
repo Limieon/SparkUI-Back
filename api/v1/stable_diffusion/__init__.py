@@ -17,8 +17,8 @@ from image_utils import merge_images
 router = APIRouter(prefix="/api/v1/stable_diffusion", tags=["StableDiffusion"])
 
 
-@router.post("/generate/{model}")
-async def generate(model: str, data: Txt2ImgRequest):
+@router.post("/generate")
+async def generate(data: Txt2ImgRequest):
     images = await generation_queue.queue_txt2img(data)
     return image_to_response(merge_images(images))
 

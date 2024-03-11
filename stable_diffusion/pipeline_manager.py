@@ -4,6 +4,7 @@ import torch
 from queue import Queue
 from typing import Callable
 from PIL.Image import Image
+from DeepCache import DeepCacheSDHelper
 
 from diffusers import DiffusionPipeline, StableDiffusionPipeline, StableDiffusionXLPipeline
 
@@ -28,15 +29,23 @@ class PipelineManager:
 
             pipeline: DiffusionPipeline = None
             if base == StableDiffusionBaseModel.SD1_5 or base == StableDiffusionBaseModel.SD2_1:
-                pipeline = StableDiffusionPipeline.from_single_file(path, torch_dtype=torch.float16, use_safetensors=True)
+                pipeline = StableDiffusionPipeline.from_single_file(path, torch_dtype=torch.float16 if use_gpu else torch.float32, use_safetensors=True)
 
             if base == StableDiffusionBaseModel.SDXL1_0 or base == StableDiffusionBaseModel.SDXL1_0Turbo or base == StableDiffusionBaseModel.SDXL1_0Lightning:
-                pipeline = StableDiffusionXLPipeline.from_single_file(path, torch_dtype=torch.float16, use_safetensors=True)
+                pipeline = StableDiffusionXLPipeline.from_single_file(path, torch_dtype=torch.float16 if use_gpu else torch.float32, use_safetensors=True)
 
+            
             if use_gpu:
                 pipeline.to("cuda")
                 pipeline.enable_model_cpu_offload()
                 pipeline.enable_xformers_memory_efficient_attention()
+
+            helper = DeepCacheSDHelper(pipe=pipeline)
+            helper.set_params(
+                cache_interval=3,
+                cache_branch_id=0,
+            )
+            helper.enable()
 
             self.pipelines[hash] = pipeline
 
@@ -73,7 +82,7 @@ class GenerationQueue:
 
             gen_data, result_ready = self.queue.get()
 
-            pipe = self.pipeline_manager.load_pipeline(gen_data.checkpoint, StableDiffusionBaseModel.SDXL1_0, True)
+            pipe = self.pipeline_manager.load_pipeline(gen_data.checkpoint, StableDiffusionBaseModel.SD1_5, False)
 
             for lora in gen_data.loras:
                 pipe.load_lora_weights("./assets/models/Lora", weight_name=lora.lora, weight=lora.weight)
