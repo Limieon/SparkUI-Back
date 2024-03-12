@@ -40,15 +40,13 @@ def merge_images(images):
     return output_image
 
 
-async def download_image(url: str, path: str) -> str:
+async def download_image(url: str, path: str) -> tuple[str, int, int]:
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             if response.status == 200:
                 # Get the filename from the content disposition header
                 content_disposition = response.headers.get("Content-Disposition")
                 content_type = response.headers.get("Content-Type")
-
-                print(content_disposition)
                 filename = content_disposition.split("filename=")[-1].strip('"') if content_disposition else f"{uuid.uuid4().hex}.{content_type.split('/')[1]}"
 
                 # Ensure the directory exists
@@ -64,6 +62,10 @@ async def download_image(url: str, path: str) -> str:
                         await f.write(chunk)
 
                 print(f"Image downloaded and saved to {file_path}")
-                return file_path
+
+                with Image.open(file_path) as img:
+                    width, height = img.size
+
+                return file_path, width, height
             else:
                 print(f"Failed to download image. Status code: {response.status}")

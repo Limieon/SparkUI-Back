@@ -133,6 +133,8 @@ model Image {
 
     file   String
     format String
+    width  Int
+    height Int
 
     tags String[]
 

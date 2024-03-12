@@ -38,6 +38,8 @@ async def sd_import_models(config: SDImportConfig):
         print("Create one at https://civitai.com/user/account")
         return
 
+    await import_model("./assets/models/StableDiffusion/bluePencilXL_v500.safetensors")
+
     for checkpoint_folder in config.checkpoints:
         checkpoints_path = os.path.join(config.models_dir, checkpoint_folder)
 
