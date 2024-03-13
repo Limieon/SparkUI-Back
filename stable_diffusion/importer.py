@@ -28,6 +28,8 @@ def civitai_sd_to_spark_sd(v: str) -> str:
         return "SD1_5"
     if v == "SDXL 1.0":
         return "SDXL1_0"
+    if v == "SDXL Lightning":
+        return "SDXL1_0-Ligthning"
 
     raise ValueError(f"Found invalid CivitAI version {v}!")
 
@@ -37,8 +39,6 @@ async def sd_import_models(config: SDImportConfig):
         print("Cannot import models without valid CivitAI key!")
         print("Create one at https://civitai.com/user/account")
         return
-
-    await import_model("./assets/models/StableDiffusion/bluePencilXL_v500.safetensors")
 
     for checkpoint_folder in config.checkpoints:
         checkpoints_path = os.path.join(config.models_dir, checkpoint_folder)
@@ -50,7 +50,6 @@ async def sd_import_models(config: SDImportConfig):
                     continue
 
                 await import_model(file)
-                return  # Temporary to test import process
 
 
 async def import_model(file: str):
@@ -103,5 +102,7 @@ async def import_model(file: str):
             if not "width=" in s:
                 url.append(s)
 
-        image = await add_image_by_url("/".join(url), os.path.join(os.getenv("SPARK_DIRS_IMAGES"), model_data["name"], version_data["name"]).replace(" ", "_"))
+        image = await add_image_by_url(
+            "/".join(url), os.path.join(os.getenv("SPARK_DIRS_IMAGES"), model_data["name"], version_data["name"]).replace(" ", "_")
+        )
         await Image.prisma().update(where={"id": image.id}, data={"stableDiffusionBaseId": spark_version_id})
