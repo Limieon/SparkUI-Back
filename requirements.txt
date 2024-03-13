@@ -23,3 +23,5 @@ uvicorn
 prisma
 aiofiles
 aiohttp
+websockets
+compel

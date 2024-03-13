@@ -10,6 +10,8 @@ from db_utils import add_image_by_url
 
 from prisma.models import StableDiffusionBase, StableDiffusionCheckpoint, StableDiffusionCheckpointGroup, Image
 
+from . import StableDiffusionBaseModel
+
 
 @dataclass
 class SDImportConfig:
@@ -30,8 +32,23 @@ def civitai_sd_to_spark_sd(v: str) -> str:
         return "SDXL1_0"
     if v == "SDXL Lightning":
         return "SDXL1_0-Ligthning"
+    if v == "SDXL Turbo":
+        return "SDXL1_0-Turbo"
 
     raise ValueError(f"Found invalid CivitAI version {v}!")
+
+
+def spark_sd_to_base_enum(v: str) -> StableDiffusionBaseModel:
+    if v == "SD1_5":
+        return StableDiffusionBaseModel.SD1_5
+    if v == "SDXL1_0":
+        return StableDiffusionBaseModel.SDXL1_0
+    if v == "SDXL1_0-Ligthning":
+        return StableDiffusionBaseModel.SDXL1_0Lightning
+    if v == "SDXL1_0-Turbo":
+        return StableDiffusionBaseModel.SDXL1_0Turbo
+
+    raise ValueError(f"Found invalid Spark SD Base version {v}!")
 
 
 async def sd_import_models(config: SDImportConfig):
@@ -39,6 +56,13 @@ async def sd_import_models(config: SDImportConfig):
         print("Cannot import models without valid CivitAI key!")
         print("Create one at https://civitai.com/user/account")
         return
+
+    # Used to import my current test models, might not be available on your setup
+    await import_model("./assets/models/StableDiffusion/animaPencilXL_v200.safetensors")
+    await import_model("./assets/models/StableDiffusion/juggernautXL_v9Rundiffusionphoto2.safetensors")
+    await import_model("./assets/models/StableDiffusion/dreamshaper_8.safetensors")
+    await import_model("./assets/models/StableDiffusion/dreamshaperXL_v21TurboDPMSDE.safetensors")
+    return
 
     for checkpoint_folder in config.checkpoints:
         checkpoints_path = os.path.join(config.models_dir, checkpoint_folder)
@@ -102,7 +126,5 @@ async def import_model(file: str):
             if not "width=" in s:
                 url.append(s)
 
-        image = await add_image_by_url(
-            "/".join(url), os.path.join(os.getenv("SPARK_DIRS_IMAGES"), model_data["name"], version_data["name"]).replace(" ", "_")
-        )
+        image = await add_image_by_url("/".join(url), os.path.join(os.getenv("SPARK_DIRS_IMAGES"), model_data["name"], version_data["name"]).replace(" ", "_"))
         await Image.prisma().update(where={"id": image.id}, data={"stableDiffusionBaseId": spark_version_id})

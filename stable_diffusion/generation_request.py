@@ -12,10 +12,10 @@ class LoraRequest(BaseModel):
 class Txt2ImgRequest(BaseModel):
     def __hash__(self):
         return hash(
-            (self.checkpoint, self.prompt, self.negative_prompt, self.width, self.height, self.cfg_scale, self.steps, tuple(self.loras), self.num_images)
+            (self.checkpoint_id, self.prompt, self.negative_prompt, self.width, self.height, self.cfg_scale, self.steps, tuple(self.loras), self.num_images)
         )
 
-    checkpoint: str = ""
+    checkpoint_id: int = -1
     prompt: str = ""
     negative_prompt: str = ""
 
