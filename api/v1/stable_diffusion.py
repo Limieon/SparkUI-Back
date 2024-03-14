@@ -5,11 +5,12 @@ from dataclasses import dataclass
 
 import prisma.models as pm
 
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException
 from fastapi.responses import Response, StreamingResponse
 
 from stable_diffusion.types import SDCheckpoint, Image
 from stable_diffusion.generation_request import Txt2ImgRequest
+from stable_diffusion.workflow import WorkflowData
 
 from spark import generation_queue
 
@@ -62,6 +63,14 @@ async def get_models():
     return Res_Checkpoints(
         items=checkpoints, total=await pm.StableDiffusionCheckpoint.prisma().count(), filtered=await pm.StableDiffusionCheckpoint.prisma().count()
     )
+
+
+@router.post("/workflow")
+async def post_workflow(data: WorkflowData, client_id: str):
+    if client_id is None:
+        raise HTTPException(403, "No clientID provided!")
+
+    return {}
 
 
 def init_routes(app: FastAPI):
