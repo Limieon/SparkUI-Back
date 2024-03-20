@@ -31,3 +31,22 @@ class WorkflowNodeData(BaseModel):
 class WorkflowData(BaseModel):
     nodes: dict[str, WorkflowNodeData]
     parameters: dict[str, Any]
+
+
+class Workflow:
+    def __init__(self, nodes: dict[str, WorkflowNodeData]):
+        self.nodes = nodes
+
+    def has_recursion(self) -> bool:
+        # TODO implement recursion checking
+        return False
+
+    async def invoke(self, parameters: dict[str, Any]):
+        # TODO implement workflow invocation
+
+        print(self.nodes)
+        print(parameters)
+
+        return
+
+    nodes: dict[str, WorkflowNodeData]

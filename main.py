@@ -20,11 +20,12 @@ async def main():
 
     if "--import" in sys.argv:
         await import_models()
+        return
 
     await start_inference_server()
 
 
-async def import_models():
+async def import_models(model: str | None = None):
     await sd_import_models(
         SDImportConfig(
             models_dir=os.getenv("SPARK_DIRS_MODELS"),

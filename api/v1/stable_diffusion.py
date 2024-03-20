@@ -65,12 +65,6 @@ async def get_models():
     )
 
 
-@router.post("/workflow")
-async def post_workflow(data: WorkflowData, client_id: str):
-    if client_id is None:
-        raise HTTPException(403, "No clientID provided!")
-
-    return {}
 
 
 def init_routes(app: FastAPI):
